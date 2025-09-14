@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -105,16 +107,51 @@ func main() {
 	}
 
 	if fm, ok := finalModel.(model); ok && fm.selected != nil {
-		result := map[string]string{
-			"method":  fm.selected.method,
-			"path":    fm.selected.path,
-			"summary": fm.selected.summary,
+		baseURL := "https://jsonplaceholder.typicode.com"
+
+		url := baseURL + fm.selected.path
+
+		req, err := http.NewRequest(fm.selected.method, url, nil)
+		if err != nil {
+			fmt.Println("Error Creating Request:", err)
+			os.Exit(1)
 		}
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("Error sending request:", err)
+			os.Exit(1)
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println("Error reading response:", err)
+
+			os.Exit(1)
+		}
+
+		output := map[string]interface{}{
+			"request": map[string]string{
+				"method":  fm.selected.method,
+				"path":    fm.selected.path,
+				"summary": fm.selected.summary,
+			},
+			"response": map[string]interface{}{
+				"status": res.StatusCode,
+			},
+		}
+
+		var result interface{}
+
+		if err := json.Unmarshal(body, &result); err == nil {
+			output["response"].(map[string]interface{})["body"] = result
+		} else {
+			output["response"].(map[string]interface{})["body"] = string(body)
+		}
+
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-
-		if err := enc.Encode(result); err != nil {
-			fmt.Println("Error Encoding Result:", err)
-		}
+		enc.Encode(output)
 	}
 }
