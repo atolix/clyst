@@ -25,7 +25,7 @@ type Response struct {
 
 type Operation struct {
 	Summary    string              `yaml:"summary"`
-	Parameters []Parameter         `yaml:parameters`
+	Parameters []Parameter         `yaml:"parameters"`
 	Responses  map[string]Response `yaml:"responses"`
 }
 
