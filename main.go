@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -93,6 +94,15 @@ func main() {
 	}
 
 	if fm, ok := finalModel.(model); ok && fm.selected != nil {
-		fmt.Printf("Selected: %s - %s\n", fm.selected.Title(), fm.selected.Description())
+		result := map[string]string{
+			"method":  fm.selected.Title(),
+			"summary": fm.selected.Description(),
+		}
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+
+		if err := enc.Encode(result); err != nil {
+			fmt.Println("Error Encoding Result:", err)
+		}
 	}
 }
