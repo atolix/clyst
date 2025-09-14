@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,7 +15,7 @@ type EndpointItem struct {
 	Summary string
 }
 
-func (i EndpointItem) Title() string       { return fmt.Sprintf("%s %s", i.Method, i.Path) }
+func (i EndpointItem) Title() string       { return fmt.Sprintf("%s %s", strings.ToUpper(i.Method), i.Path) }
 func (i EndpointItem) Description() string { return i.Summary }
 func (i EndpointItem) FilterValue() string { return i.Path }
 
@@ -23,9 +24,22 @@ type Model struct {
 	Selected *EndpointItem
 }
 
+func NewStyleDelegate() list.DefaultDelegate {
+	d := list.NewDefaultDelegate()
+
+	d.Styles.SelectedTitle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#b0c4de")).
+		Bold(true)
+
+	d.Styles.SelectedDesc = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#b0c4de"))
+
+	return d
+}
+
 func NewModel(items []list.Item) Model {
 	const defaultWidth = 50
-	l := list.New(items, list.NewDefaultDelegate(), defaultWidth, 40)
+	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
 	l.Title = "Api Endpoints"
 	return Model{list: l}
 }
