@@ -1,4 +1,4 @@
-module github.com/atolix/catalyst
+module github.com/atolix/clyst
 
 go 1.24.4
 

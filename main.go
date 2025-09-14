@@ -8,9 +8,9 @@ import (
 	"sort"
 
 	"github.com/alecthomas/chroma/quick"
-	"github.com/atolix/catalyst/request"
-	"github.com/atolix/catalyst/spec"
-	"github.com/atolix/catalyst/tui"
+	"github.com/atolix/clyst/request"
+	"github.com/atolix/clyst/spec"
+	"github.com/atolix/clyst/tui"
 	"github.com/charmbracelet/bubbles/list"
 )
 
