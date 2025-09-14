@@ -4,16 +4,41 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/atolix/catalyst/request"
 	"github.com/atolix/catalyst/spec"
 	"github.com/atolix/catalyst/tui"
+	"github.com/charmbracelet/bubbles/list"
 )
 
 func main() {
-	items, err := spec.Load("api_spec.yml")
+	spec, err := spec.Load("api_spec.yml")
 	if err != nil {
 		panic(err)
+	}
+
+	var endpoints []tui.EndpointItem
+	for path, methods := range spec.Paths {
+		for method, op := range methods {
+			endpoints = append(endpoints, tui.EndpointItem{
+				Method:    method,
+				Path:      path,
+				Operation: op,
+			})
+		}
+	}
+
+	sort.Slice(endpoints, func(i, j int) bool {
+		if endpoints[i].Method == endpoints[j].Method {
+			return endpoints[i].Path < endpoints[j].Path
+		}
+		return endpoints[i].Method < endpoints[j].Method
+	})
+
+	var items []list.Item
+	for _, ep := range endpoints {
+		items = append(items, ep)
 	}
 
 	selected, err := tui.Run(items)
@@ -32,7 +57,7 @@ func main() {
 	result, err := request.Send(baseURL, request.Endpoint{
 		Method:  selected.Method,
 		Path:    selected.Path,
-		Summary: selected.Summary,
+		Summary: selected.Operation.Summary,
 	})
 
 	if err != nil {

@@ -1,22 +1,24 @@
 package tui
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/atolix/catalyst/spec"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type EndpointItem struct {
-	Method  string
-	Path    string
-	Summary string
+	Method    string
+	Path      string
+	Operation spec.Operation
 }
 
 func (i EndpointItem) Title() string       { return fmt.Sprintf("%s %s", strings.ToUpper(i.Method), i.Path) }
-func (i EndpointItem) Description() string { return i.Summary }
+func (i EndpointItem) Description() string { return i.Operation.Summary }
 func (i EndpointItem) FilterValue() string { return i.Path }
 
 type Model struct {
@@ -67,7 +69,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return lipgloss.NewStyle().Margin(1, 2).Render(m.list.View())
+	left := m.list.View()
+
+	var right string
+	if i, ok := m.list.SelectedItem().(EndpointItem); ok {
+		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
+		if err == nil {
+			right = string(parsed)
+		} else {
+			right = "error formatting JSON"
+		}
+	} else {
+		right = "No item selected"
+	}
+
+	rightBox := lipgloss.NewStyle().Width(50).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(right)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, rightBox)
 }
 
 func Run(items []list.Item) (*EndpointItem, error) {
