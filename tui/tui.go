@@ -57,7 +57,7 @@ func NewStyleDelegate() list.DefaultDelegate {
 
 func NewModel(items []list.Item) Model {
 	const defaultWidth = 50
-	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
+	l := list.New(items, NewStyleDelegate(), defaultWidth, 50)
 	l.Title = "Api Endpoints"
 	l.SetShowStatusBar(false)
 	return Model{list: l}
@@ -99,7 +99,7 @@ func (m Model) View() string {
 		right = "No item selected"
 	}
 
-	rightBox := lipgloss.NewStyle().Width(50).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(right)
+	rightBox := lipgloss.NewStyle().Width(100).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(right)
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, left, rightBox)
 }
