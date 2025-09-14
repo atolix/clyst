@@ -1,10 +1,12 @@
 package tui
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/alecthomas/chroma/quick"
 	"github.com/atolix/catalyst/spec"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -91,7 +93,9 @@ func (m Model) View() string {
 	if i, ok := m.list.SelectedItem().(EndpointItem); ok {
 		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
 		if err == nil {
-			right = string(parsed)
+			var buf bytes.Buffer
+			quick.Highlight(&buf, string(parsed), "json", "terminal", "github-dark")
+			right = buf.String()
 		} else {
 			right = "error formatting JSON"
 		}
