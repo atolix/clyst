@@ -4,38 +4,31 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	"gopkg.in/yaml.v3"
 )
 
-type model struct {
-	count int
+type OpenApiSpec struct {
+	Paths map[string]map[string]Operation `yaml:"paths"`
 }
 
-func (m model) Init() tea.Cmd { return nil }
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, tea.Quit
-		case "up":
-			m.count++
-		case "down":
-			m.count--
-		}
-	}
-	return m, nil
-}
-
-func (m model) View() string {
-	return fmt.Sprintf("Count: %d\n[↑] +1  [↓] -1  [q] quit\n", m.count)
+type Operation struct {
+	Summary string `yaml:"summary"`
 }
 
 func main() {
-	p := tea.NewProgram(model{})
-	if err := p.Start(); err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+	data, err := os.ReadFile("api_spec.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	var spec OpenApiSpec
+	if err := yaml.Unmarshal(data, &spec); err != nil {
+		panic(err)
+	}
+
+	for path, methods := range spec.Paths {
+		for method, op := range methods {
+			fmt.Printf("%s %s - %s\n", method, path, op.Summary)
+		}
 	}
 }
