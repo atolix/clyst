@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/alecthomas/chroma/quick"
-	"github.com/atolix/catalyst/spec"
+	"github.com/atolix/clyst/spec"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
