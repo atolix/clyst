@@ -15,7 +15,7 @@ type Endpoint struct {
 	Summary string
 }
 
-func Send(baseURL string, ep Endpoint) (map[string]interface{}, error) {
+func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	path := ep.Path
 	url := baseURL + path
 	method := strings.ToUpper(ep.Method)
@@ -40,23 +40,23 @@ func Send(baseURL string, ep Endpoint) (map[string]interface{}, error) {
 		os.Exit(1)
 	}
 
-	output := map[string]interface{}{
+	output := map[string]any{
 		"request": map[string]string{
 			"method":  method,
 			"path":    path,
 			"summary": ep.Summary,
 		},
-		"response": map[string]interface{}{
+		"response": map[string]any{
 			"status": res.StatusCode,
 		},
 	}
 
-	var result interface{}
+	var result any
 
 	if err := json.Unmarshal(body, &result); err == nil {
-		output["response"].(map[string]interface{})["body"] = result
+		output["response"].(map[string]any)["body"] = result
 	} else {
-		output["response"].(map[string]interface{})["body"] = string(body)
+		output["response"].(map[string]any)["body"] = string(body)
 	}
 
 	return output, nil
