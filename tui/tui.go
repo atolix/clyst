@@ -29,12 +29,28 @@ type Model struct {
 func NewStyleDelegate() list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
+	d.Styles.NormalTitle = d.Styles.NormalTitle.
+		PaddingLeft(2)
+
+	d.Styles.NormalDesc = d.Styles.NormalDesc.
+		PaddingLeft(2)
+
 	d.Styles.SelectedTitle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#87cefa")).
+		MarginLeft(0).
+		PaddingLeft(2).
+		BorderLeft(true).
+		BorderStyle(lipgloss.ThickBorder()).
+		BorderForeground(lipgloss.Color("#6495ed")).
 		Bold(true)
 
 	d.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#87cefa"))
+		Foreground(lipgloss.Color("#87cefa")).
+		MarginLeft(0).
+		PaddingLeft(2).
+		BorderLeft(true).
+		BorderStyle(lipgloss.ThickBorder()).
+		BorderForeground(lipgloss.Color("#6495ed"))
 
 	return d
 }
