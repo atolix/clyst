@@ -3,6 +3,8 @@ package spec
 import (
 	"os"
 
+	"github.com/atolix/catalyst/tui"
+	"github.com/charmbracelet/bubbles/list"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,7 +16,7 @@ type Operation struct {
 	Summary string `yaml:"summary"`
 }
 
-func Load(filename string) (*OpenApiSpec, error) {
+func Load(filename string) ([]list.Item, error) {
 	data, err := os.ReadFile("api_spec.yml")
 	if err != nil {
 		panic(err)
@@ -25,5 +27,16 @@ func Load(filename string) (*OpenApiSpec, error) {
 		panic(err)
 	}
 
-	return &spec, nil
+	var items []list.Item
+	for path, methods := range spec.Paths {
+		for method, op := range methods {
+			items = append(items, tui.EndpointItem{
+				Method:  method,
+				Path:    path,
+				Summary: op.Summary,
+			})
+		}
+	}
+
+	return items, nil
 }

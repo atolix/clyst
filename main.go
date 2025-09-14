@@ -5,28 +5,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/list"
-
 	"github.com/atolix/catalyst/request"
 	"github.com/atolix/catalyst/spec"
 	"github.com/atolix/catalyst/tui"
 )
 
 func main() {
-	spec, err := spec.Load("api_spec.yml")
+	items, err := spec.Load("api_spec.yml")
 	if err != nil {
 		panic(err)
-	}
-
-	var items []list.Item
-	for path, methods := range spec.Paths {
-		for method, op := range methods {
-			items = append(items, tui.EndpointItem{
-				Method:  method,
-				Path:    path,
-				Summary: op.Summary,
-			})
-		}
 	}
 
 	selected, err := tui.Run(items)
