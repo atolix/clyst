@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 
+	"github.com/alecthomas/chroma/quick"
 	"github.com/atolix/catalyst/request"
 	"github.com/atolix/catalyst/spec"
 	"github.com/atolix/catalyst/tui"
@@ -64,7 +66,19 @@ func main() {
 		panic(err)
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	enc.Encode(result)
+	encoded, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "encode error:", err)
+		return
+	}
+
+	var buf bytes.Buffer
+
+	if err := quick.Highlight(&buf, string(encoded), "json", "terminal", "github"); err != nil {
+		fmt.Fprintln(os.Stderr, "highlight error:", err)
+		os.Stdout.Write(encoded)
+		return
+	}
+
+	os.Stdout.Write(buf.Bytes())
 }
