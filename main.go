@@ -28,7 +28,8 @@ func (i endpointItem) Description() string { return i.desc }
 func (i endpointItem) FilterValue() string { return i.title }
 
 type model struct {
-	list list.Model
+	list     list.Model
+	selected *endpointItem
 }
 
 func newModel(items []list.Item) model {
@@ -43,6 +44,17 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			if i, ok := m.list.SelectedItem().(endpointItem); ok {
+				m.selected = &i
+				return m, tea.Quit
+			}
+		}
+	}
+
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -74,11 +86,13 @@ func main() {
 	}
 
 	m := newModel(items)
-	_, err = tea.NewProgram(m).Run()
+	finalModel, err := tea.NewProgram(m).Run()
 	if err != nil {
 		fmt.Println("error:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("bye")
+	if fm, ok := finalModel.(model); ok && fm.selected != nil {
+		fmt.Printf("Selected: %s - %s\n", fm.selected.Title(), fm.selected.Description())
+	}
 }
