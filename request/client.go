@@ -15,18 +15,6 @@ type Endpoint struct {
 	Summary string
 }
 
-func (e Endpoint) Title() string {
-	return fmt.Sprintf("%s %s", e.Method, e.Path)
-}
-
-func (e Endpoint) Description() string {
-	return e.Summary
-}
-
-func (e Endpoint) FilterValue() string {
-	return e.Path
-}
-
 func Send(baseURL string, ep Endpoint) (map[string]interface{}, error) {
 	path := ep.Path
 	url := baseURL + path
