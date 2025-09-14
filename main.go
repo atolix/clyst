@@ -21,12 +21,22 @@ type Operation struct {
 }
 
 type endpointItem struct {
-	title, desc string
+	method  string
+	path    string
+	summary string
 }
 
-func (i endpointItem) Title() string       { return i.title }
-func (i endpointItem) Description() string { return i.desc }
-func (i endpointItem) FilterValue() string { return i.title }
+func (i endpointItem) Title() string {
+	return fmt.Sprintf("%s %s", i.method, i.path)
+}
+
+func (i endpointItem) Description() string {
+	return i.summary
+}
+
+func (i endpointItem) FilterValue() string {
+	return i.path
+}
 
 type model struct {
 	list     list.Model
@@ -80,8 +90,9 @@ func main() {
 	for path, methods := range spec.Paths {
 		for method, op := range methods {
 			items = append(items, endpointItem{
-				title: fmt.Sprintf("%s %s", method, path),
-				desc:  op.Summary,
+				method:  method,
+				path:    path,
+				summary: op.Summary,
 			})
 		}
 	}
@@ -95,8 +106,9 @@ func main() {
 
 	if fm, ok := finalModel.(model); ok && fm.selected != nil {
 		result := map[string]string{
-			"method":  fm.selected.Title(),
-			"summary": fm.selected.Description(),
+			"method":  fm.selected.method,
+			"path":    fm.selected.path,
+			"summary": fm.selected.summary,
 		}
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
