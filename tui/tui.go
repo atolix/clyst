@@ -94,7 +94,7 @@ func (m Model) View() string {
 		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
 		if err == nil {
 			var buf bytes.Buffer
-			quick.Highlight(&buf, string(parsed), "json", "terminal", "github-dark")
+			quick.Highlight(&buf, string(parsed), "json", "terminal", "github")
 			right = buf.String()
 		} else {
 			right = "error formatting JSON"
