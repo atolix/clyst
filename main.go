@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -21,12 +23,22 @@ type Operation struct {
 }
 
 type endpointItem struct {
-	title, desc string
+	method  string
+	path    string
+	summary string
 }
 
-func (i endpointItem) Title() string       { return i.title }
-func (i endpointItem) Description() string { return i.desc }
-func (i endpointItem) FilterValue() string { return i.title }
+func (i endpointItem) Title() string {
+	return fmt.Sprintf("%s %s", i.method, i.path)
+}
+
+func (i endpointItem) Description() string {
+	return i.summary
+}
+
+func (i endpointItem) FilterValue() string {
+	return i.path
+}
 
 type model struct {
 	list     list.Model
@@ -80,8 +92,9 @@ func main() {
 	for path, methods := range spec.Paths {
 		for method, op := range methods {
 			items = append(items, endpointItem{
-				title: fmt.Sprintf("%s %s", method, path),
-				desc:  op.Summary,
+				method:  method,
+				path:    path,
+				summary: op.Summary,
 			})
 		}
 	}
@@ -94,15 +107,51 @@ func main() {
 	}
 
 	if fm, ok := finalModel.(model); ok && fm.selected != nil {
-		result := map[string]string{
-			"method":  fm.selected.Title(),
-			"summary": fm.selected.Description(),
+		baseURL := "https://jsonplaceholder.typicode.com"
+
+		url := baseURL + fm.selected.path
+
+		req, err := http.NewRequest(fm.selected.method, url, nil)
+		if err != nil {
+			fmt.Println("Error Creating Request:", err)
+			os.Exit(1)
 		}
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("Error sending request:", err)
+			os.Exit(1)
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println("Error reading response:", err)
+
+			os.Exit(1)
+		}
+
+		output := map[string]interface{}{
+			"request": map[string]string{
+				"method":  fm.selected.method,
+				"path":    fm.selected.path,
+				"summary": fm.selected.summary,
+			},
+			"response": map[string]interface{}{
+				"status": res.StatusCode,
+			},
+		}
+
+		var result interface{}
+
+		if err := json.Unmarshal(body, &result); err == nil {
+			output["response"].(map[string]interface{})["body"] = result
+		} else {
+			output["response"].(map[string]interface{})["body"] = string(body)
+		}
+
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-
-		if err := enc.Encode(result); err != nil {
-			fmt.Println("Error Encoding Result:", err)
-		}
+		enc.Encode(output)
 	}
 }
