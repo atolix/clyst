@@ -3,38 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/atolix/catalyst/request"
 	"github.com/atolix/catalyst/spec"
 )
 
-type endpointItem struct {
-	method  string
-	path    string
-	summary string
-}
-
-func (i endpointItem) Title() string {
-	return fmt.Sprintf("%s %s", i.method, i.path)
-}
-
-func (i endpointItem) Description() string {
-	return i.summary
-}
-
-func (i endpointItem) FilterValue() string {
-	return i.path
-}
-
 type model struct {
 	list     list.Model
-	selected *endpointItem
+	selected *request.Endpoint
 }
 
 func newModel(items []list.Item) model {
@@ -53,7 +34,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			if i, ok := m.list.SelectedItem().(endpointItem); ok {
+			if i, ok := m.list.SelectedItem().(request.Endpoint); ok {
 				m.selected = &i
 				return m, tea.Quit
 			}
@@ -78,10 +59,10 @@ func main() {
 	var items []list.Item
 	for path, methods := range spec.Paths {
 		for method, op := range methods {
-			items = append(items, endpointItem{
-				method:  method,
-				path:    path,
-				summary: op.Summary,
+			items = append(items, request.Endpoint{
+				Method:  method,
+				Path:    path,
+				Summary: op.Summary,
 			})
 		}
 	}
@@ -96,49 +77,13 @@ func main() {
 	if fm, ok := finalModel.(model); ok && fm.selected != nil {
 		baseURL := "https://jsonplaceholder.typicode.com"
 
-		url := baseURL + fm.selected.path
-
-		req, err := http.NewRequest(fm.selected.method, url, nil)
+		result, err := request.Send(baseURL, *fm.selected)
 		if err != nil {
-			fmt.Println("Error Creating Request:", err)
-			os.Exit(1)
-		}
-
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			fmt.Println("Error sending request:", err)
-			os.Exit(1)
-		}
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println("Error reading response:", err)
-
-			os.Exit(1)
-		}
-
-		output := map[string]interface{}{
-			"request": map[string]string{
-				"method":  fm.selected.method,
-				"path":    fm.selected.path,
-				"summary": fm.selected.summary,
-			},
-			"response": map[string]interface{}{
-				"status": res.StatusCode,
-			},
-		}
-
-		var result interface{}
-
-		if err := json.Unmarshal(body, &result); err == nil {
-			output["response"].(map[string]interface{})["body"] = result
-		} else {
-			output["response"].(map[string]interface{})["body"] = string(body)
+			panic(err)
 		}
 
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		enc.Encode(output)
+		enc.Encode(result)
 	}
 }
