@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/atolix/catalyst/spec"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type EndpointItem struct {
-	Method  string
-	Path    string
-	Summary string
+	Method    string
+	Path      string
+	Operation spec.Operation
 }
 
 func (i EndpointItem) Title() string       { return fmt.Sprintf("%s %s", strings.ToUpper(i.Method), i.Path) }
-func (i EndpointItem) Description() string { return i.Summary }
+func (i EndpointItem) Description() string { return i.Operation.Summary }
 func (i EndpointItem) FilterValue() string { return i.Path }
 
 type Model struct {
