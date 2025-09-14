@@ -41,6 +41,7 @@ func NewModel(items []list.Item) Model {
 	const defaultWidth = 50
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
 	l.Title = "Api Endpoints"
+	l.SetShowStatusBar(false)
 	return Model{list: l}
 }
 
