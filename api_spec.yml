@@ -1,0 +1,45 @@
+openapi: 3.0.0
+info:
+  title: Sample API
+  version: "1.0"
+
+servers:
+  - url: https://api.example.com
+
+paths:
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        "200":
+          description: OK
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+  /posts:
+    post:
+      summary: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Created
+
