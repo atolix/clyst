@@ -28,11 +28,11 @@ func NewStyleDelegate() list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.Styles.SelectedTitle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#b0c4de")).
+		Foreground(lipgloss.Color("#87cefa")).
 		Bold(true)
 
 	d.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#b0c4de"))
+		Foreground(lipgloss.Color("#87cefa"))
 
 	return d
 }
