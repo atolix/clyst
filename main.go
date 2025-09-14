@@ -11,16 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"gopkg.in/yaml.v3"
+	"github.com/atolix/catalyst/spec"
 )
-
-type OpenApiSpec struct {
-	Paths map[string]map[string]Operation `yaml:"paths"`
-}
-
-type Operation struct {
-	Summary string `yaml:"summary"`
-}
 
 type endpointItem struct {
 	method  string
@@ -78,13 +70,8 @@ func (m model) View() string {
 }
 
 func main() {
-	data, err := os.ReadFile("api_spec.yml")
+	spec, err := spec.Load("api_spec.yml")
 	if err != nil {
-		panic(err)
-	}
-
-	var spec OpenApiSpec
-	if err := yaml.Unmarshal(data, &spec); err != nil {
 		panic(err)
 	}
 
