@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -68,7 +69,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return lipgloss.NewStyle().Margin(1, 2).Render(m.list.View())
+	left := m.list.View()
+
+	var right string
+	if i, ok := m.list.SelectedItem().(EndpointItem); ok {
+		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
+		if err == nil {
+			right = string(parsed)
+		} else {
+			right = "error formatting JSON"
+		}
+	} else {
+		right = "No item selected"
+	}
+
+	rightBox := lipgloss.NewStyle().Width(50).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(right)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, left, rightBox)
 }
 
 func Run(items []list.Item) (*EndpointItem, error) {

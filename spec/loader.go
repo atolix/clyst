@@ -26,7 +26,7 @@ type Response struct {
 type Operation struct {
 	Summary    string              `yaml:"summary"`
 	Parameters []Parameter         `yaml:parameters`
-	Response   map[string]Response `yaml:"responses"`
+	Responses  map[string]Response `yaml:"responses"`
 }
 
 func Load(filename string) (*OpenApiSpec, error) {
