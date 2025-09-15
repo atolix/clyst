@@ -19,6 +19,24 @@ paths:
       responses:
         "200":
           description: OK
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        "201":
+          description: Created
+
   /users/{id}:
     get:
       summary: Get user by ID
@@ -31,6 +49,33 @@ paths:
       responses:
         "200":
           description: OK
+        "404":
+          description: User not found
+    put:
+      summary: Update user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        "200":
+          description: Updated
+        "400":
+          description: Invalid input
+
   /users/{userId}/posts/{postId}:
     get:
       summary: Get a specific post of a user
@@ -48,7 +93,26 @@ paths:
       responses:
         "200":
           description: OK
+        "404":
+          description: Post not found
+
   /posts:
+    get:
+      summary: List posts with optional filters
+      parameters:
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: published
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
     post:
       summary: Create a new post
       requestBody:
@@ -57,12 +121,145 @@ paths:
           application/json:
             schema:
               type: object
+              required: [title, content]
               properties:
                 title:
                   type: string
                 content:
                   type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
       responses:
         "201":
           description: Created
 
+  /posts/{id}:
+    get:
+      summary: Get post by ID (with header param)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: X-Request-Id
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not found
+    delete:
+      summary: Delete post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+
+  /login:
+    post:
+      summary: Login with form-data
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login success
+        "401":
+          description: Unauthorized
+
+  /logout:
+    post:
+      summary: Logout (with cookie param)
+      parameters:
+        - name: session_id
+          in: cookie
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Logged out
+
+  /comments:
+    get:
+      summary: Get all comments
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Create a new comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId, message]
+              properties:
+                postId:
+                  type: integer
+                message:
+                  type: string
+      responses:
+        "201":
+          description: Created
+
+  /comments/{id}:
+    get:
+      summary: Get comment by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not found
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+
+  /search:
+    get:
+      summary: Search across users and posts
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [user, post, comment]
+      responses:
+        "200":
+          description: Search results
