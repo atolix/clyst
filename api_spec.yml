@@ -25,6 +25,23 @@ paths:
       responses:
         "200":
           description: OK
+  /users/{userId}/posts/{postId}:
+    get:
+      summary: Get a specific post of a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
   /posts:
     post:
       summary: Create a new post
