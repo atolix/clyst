@@ -62,7 +62,7 @@ func NewStyleDelegate() list.DefaultDelegate {
 
 func NewModel(items []list.Item) Model {
 	const defaultWidth = 50
-	l := list.New(items, NewStyleDelegate(), defaultWidth, 50)
+	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
 	l.Title = "Api Endpoints"
 	l.SetShowStatusBar(false)
 	return Model{list: l}
@@ -94,13 +94,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	half := m.width / 2
+	listWidth := m.width / 3
+	detailWidth := m.width - listWidth
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, half), DetailBox(m, half))
+	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, listWidth), DetailBox(m, detailWidth))
 }
 
 func ListView(m Model, width int) string {
-	return lipgloss.NewStyle().Width(width).Border(lipgloss.NormalBorder()).Render(m.list.View())
+	return lipgloss.NewStyle().Width(width).Render(m.list.View())
 }
 
 func DetailBox(m Model, width int) string {
