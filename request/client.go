@@ -22,8 +22,6 @@ type Endpoint struct {
 
 func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	path := ep.Path
-	u, _ := url.Parse(baseURL + path)
-	q := u.Query()
 
 	for _, p := range ep.Operation.Parameters {
 		if p.In == "path" {
@@ -32,7 +30,12 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 			fmt.Scan(&v)
 			path = strings.Replace(path, "{"+p.Name+"}", v, 1)
 		}
+	}
 
+	u, _ := url.Parse(baseURL + path)
+	q := u.Query()
+
+	for _, p := range ep.Operation.Parameters {
 		if p.In == "query" {
 			fmt.Printf("Enter %s (%s) [optional]: ", p.Name, p.Schema.Type)
 			var v string
@@ -56,7 +59,7 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	}
 
 	method := strings.ToUpper(ep.Method)
-	u.RawQuery = q.Encode()
+
 	req, err := http.NewRequest(method, u.String(), rb)
 	if rb != nil {
 		req.Header.Set("Content-Type", "application/json")
