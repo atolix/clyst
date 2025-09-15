@@ -10,6 +10,12 @@ paths:
   /users:
     get:
       summary: Get all users
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: OK
