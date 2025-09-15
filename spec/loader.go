@@ -19,14 +19,21 @@ type Parameter struct {
 	} `yaml:"schema"`
 }
 
+type RequestBody struct {
+	Content map[string]struct {
+		Schema map[string]any `yaml:"schema"`
+	} `yaml:"content"`
+}
+
 type Response struct {
 	Description string `yaml:"description"`
 }
 
 type Operation struct {
-	Summary    string              `yaml:"summary"`
-	Parameters []Parameter         `yaml:"parameters"`
-	Responses  map[string]Response `yaml:"responses"`
+	Summary     string              `yaml:"summary"`
+	Parameters  []Parameter         `yaml:"parameters"`
+	RequestBody *RequestBody        `yaml:"requestBody"`
+	Responses   map[string]Response `yaml:"responses"`
 }
 
 func Load(filename string) (*OpenApiSpec, error) {

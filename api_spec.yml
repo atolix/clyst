@@ -10,6 +10,12 @@ paths:
   /users:
     get:
       summary: Get all users
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: OK
@@ -18,6 +24,23 @@ paths:
       summary: Get user by ID
       parameters:
         - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+  /users/{userId}/posts/{postId}:
+    get:
+      summary: Get a specific post of a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: postId
           in: path
           required: true
           schema:
