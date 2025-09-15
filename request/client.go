@@ -49,7 +49,6 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println("Error reading response:", err)
-
 		os.Exit(1)
 	}
 
