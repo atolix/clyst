@@ -54,14 +54,19 @@ func main() {
 		return
 	}
 
-	baseURL := "https://jsonplaceholder.typicode.com"
-
-	result, err := request.Send(baseURL, request.Endpoint{
+	ep := request.Endpoint{
 		Method:    selected.Method,
 		Path:      selected.Path,
 		Operation: selected.Operation,
-	})
+	}
 
+	baseURL := "https://jsonplaceholder.typicode.com"
+	input, err := request.AssembleInput(baseURL, ep, request.CLIInput{})
+	if err != nil {
+		panic(err)
+	}
+
+	result, err := request.Send(ep, input)
 	if err != nil {
 		panic(err)
 	}
