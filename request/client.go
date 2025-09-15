@@ -7,16 +7,29 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/atolix/clyst/spec"
 )
 
 type Endpoint struct {
-	Method  string
-	Path    string
-	Summary string
+	Method    string
+	Path      string
+	Summary   string
+	Operation spec.Operation
 }
 
 func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	path := ep.Path
+
+	for _, p := range ep.Operation.Parameters {
+		if p.In == "path" {
+			fmt.Printf("Enter %s (%s): ", p.Name, p.Schema.Type)
+			var v string
+			fmt.Scan(&v)
+			path = strings.Replace(path, "{"+p.Name+"}", v, 1)
+		}
+	}
+
 	url := baseURL + path
 	method := strings.ToUpper(ep.Method)
 

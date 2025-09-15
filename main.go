@@ -57,9 +57,9 @@ func main() {
 	baseURL := "https://jsonplaceholder.typicode.com"
 
 	result, err := request.Send(baseURL, request.Endpoint{
-		Method:  selected.Method,
-		Path:    selected.Path,
-		Summary: selected.Operation.Summary,
+		Method:    selected.Method,
+		Path:      selected.Path,
+		Operation: selected.Operation,
 	})
 
 	if err != nil {
