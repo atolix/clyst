@@ -97,14 +97,16 @@ func (m Model) View() string {
 	listWidth := m.width / 3
 	detailWidth := m.width - listWidth
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, listWidth), DetailBox(m, detailWidth))
+	height := m.height / 3
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, listWidth, height), DetailBox(m, detailWidth, height))
 }
 
-func ListView(m Model, width int) string {
-	return lipgloss.NewStyle().Width(width).Render(m.list.View())
+func ListView(m Model, width int, height int) string {
+	return lipgloss.NewStyle().Width(width).Height(height).Render(m.list.View())
 }
 
-func DetailBox(m Model, width int) string {
+func DetailBox(m Model, width int, height int) string {
 	var detail string
 	if i, ok := m.list.SelectedItem().(EndpointItem); ok {
 		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
@@ -119,7 +121,7 @@ func DetailBox(m Model, width int) string {
 		detail = "No item selected"
 	}
 
-	return lipgloss.NewStyle().Width(width).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(detail)
+	return lipgloss.NewStyle().Width(width).Height(height).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(detail)
 }
 
 func Run(items []list.Item) (*EndpointItem, error) {
