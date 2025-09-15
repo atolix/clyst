@@ -1,14 +1,12 @@
 package request
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/atolix/clyst/spec"
 )
@@ -16,90 +14,37 @@ import (
 type Endpoint struct {
 	Method    string
 	Path      string
-	Summary   string
 	Operation spec.Operation
 }
 
-func Send(baseURL string, ep Endpoint) (map[string]any, error) {
-	path := ep.Path
-
-	for _, p := range ep.Operation.Parameters {
-		if p.In == "path" {
-			fmt.Printf("Enter %s (%s): ", p.Name, p.Schema.Type)
-			var v string
-			fmt.Scan(&v)
-			path = strings.Replace(path, "{"+p.Name+"}", v, 1)
-		}
-	}
-
-	u, _ := url.Parse(baseURL + path)
-	q := u.Query()
-
-	for _, p := range ep.Operation.Parameters {
-		if p.In == "query" {
-			fmt.Printf("Enter %s (%s) [optional]: ", p.Name, p.Schema.Type)
-			var v string
-			fmt.Scanln(&v)
-			if v != "" {
-				q.Set(p.Name, v)
-			}
-		}
-	}
-
-	var rb io.Reader
-	var rawBody string
-
-	if ep.Operation.RequestBody != nil {
-		fmt.Println("Enter JSON body:")
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			rawBody = scanner.Text()
-			rb = strings.NewReader(rawBody)
-		}
-	}
-
-	method := strings.ToUpper(ep.Method)
-
-	req, err := http.NewRequest(method, u.String(), rb)
-	if rb != nil {
+func Send(ep Endpoint, input InputResult) (map[string]any, error) {
+	req, err := http.NewRequest(strings.ToUpper(ep.Method), input.URL, input.Body)
+	if input.Body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	if err != nil {
-		fmt.Println("Error Creating Request:", err)
-		os.Exit(1)
-	}
 
+	start := time.Now()
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
 		os.Exit(1)
 	}
 	defer res.Body.Close()
+	elapsed := time.Since(start)
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println("Error reading response:", err)
-		os.Exit(1)
-	}
+	var resBody any
+	json.NewDecoder(res.Body).Decode(&resBody)
 
-	output := map[string]any{
-		"request": map[string]string{
-			"method":      method,
-			"url":         u.String(),
-			"requestBody": rawBody,
+	return map[string]any{
+		"request": map[string]any{
+			"method": ep.Method,
+			"url":    input.URL,
+			"body":   input.RawBody,
 		},
 		"response": map[string]any{
-			"status": res.StatusCode,
+			"status":  res.StatusCode,
+			"elapsed": elapsed.String(),
+			"body":    resBody,
 		},
-	}
-
-	var result any
-
-	if err := json.Unmarshal(body, &result); err == nil {
-		output["response"].(map[string]any)["body"] = result
-	} else {
-		output["response"].(map[string]any)["body"] = string(body)
-	}
-
-	return output, nil
+	}, nil
 }
