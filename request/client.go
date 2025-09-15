@@ -1,6 +1,7 @@
 package request
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -42,9 +43,24 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 		}
 	}
 
+	var rb io.Reader
+	var rawBody string
+
+	if ep.Operation.RequestBody != nil {
+		fmt.Println("Enter JSON body:")
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			rawBody = scanner.Text()
+			rb = strings.NewReader(rawBody)
+		}
+	}
+
 	method := strings.ToUpper(ep.Method)
 	u.RawQuery = q.Encode()
-	req, err := http.NewRequest(method, u.String(), nil)
+	req, err := http.NewRequest(method, u.String(), rb)
+	if rb != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	if err != nil {
 		fmt.Println("Error Creating Request:", err)
 		os.Exit(1)
@@ -65,8 +81,9 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 
 	output := map[string]any{
 		"request": map[string]string{
-			"method": method,
-			"url":    u.String(),
+			"method":      method,
+			"url":         u.String(),
+			"requestBody": rawBody,
 		},
 		"response": map[string]any{
 			"status": res.StatusCode,
