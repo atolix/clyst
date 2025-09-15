@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -20,6 +21,8 @@ type Endpoint struct {
 
 func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 	path := ep.Path
+	u, _ := url.Parse(baseURL + path)
+	q := u.Query()
 
 	for _, p := range ep.Operation.Parameters {
 		if p.In == "path" {
@@ -28,12 +31,20 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 			fmt.Scan(&v)
 			path = strings.Replace(path, "{"+p.Name+"}", v, 1)
 		}
+
+		if p.In == "query" {
+			fmt.Printf("Enter %s (%s) [optional]: ", p.Name, p.Schema.Type)
+			var v string
+			fmt.Scanln(&v)
+			if v != "" {
+				q.Set(p.Name, v)
+			}
+		}
 	}
 
-	url := baseURL + path
 	method := strings.ToUpper(ep.Method)
-
-	req, err := http.NewRequest(method, url, nil)
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequest(method, u.String(), nil)
 	if err != nil {
 		fmt.Println("Error Creating Request:", err)
 		os.Exit(1)
@@ -54,9 +65,8 @@ func Send(baseURL string, ep Endpoint) (map[string]any, error) {
 
 	output := map[string]any{
 		"request": map[string]string{
-			"method":  method,
-			"path":    path,
-			"summary": ep.Summary,
+			"method": method,
+			"url":    u.String(),
 		},
 		"response": map[string]any{
 			"status": res.StatusCode,
