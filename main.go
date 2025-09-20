@@ -1,16 +1,16 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "sort"
+	"fmt"
+	"os"
+	"sort"
 
-    "github.com/atolix/clyst/output"
-    "github.com/atolix/clyst/request"
-    "github.com/atolix/clyst/spec"
-    "github.com/atolix/clyst/tui"
+	"github.com/atolix/clyst/output"
+	"github.com/atolix/clyst/request"
+	"github.com/atolix/clyst/spec"
+	"github.com/atolix/clyst/tui"
 
-    "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/list"
 )
 
 func main() {
@@ -59,9 +59,8 @@ func main() {
 		Operation: selected.Operation,
 	}
 
-    baseURL := "https://jsonplaceholder.typicode.com"
-    // Use TUI-backed CLIInput as a drop-in replacement
-    input, err := request.AssembleInput(baseURL, ep, &tui.CLIInput{Endpoint: ep})
+	baseURL := "https://jsonplaceholder.typicode.com"
+	input, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
 	if err != nil {
 		panic(err)
 	}

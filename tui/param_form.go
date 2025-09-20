@@ -23,8 +23,6 @@ func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
 
-// CollectParams runs a small TUI form to collect params for the selected endpoint
-// and returns a PrefilledProvider to be used with AssembleInput.
 func CollectParams(ep request.Endpoint) (PrefilledProvider, error) {
 	m := newParamFormModel(ep)
 	final, err := tea.NewProgram(m).Run()
@@ -35,15 +33,13 @@ func CollectParams(ep request.Endpoint) (PrefilledProvider, error) {
 	return fm.toProvider(), nil
 }
 
-// CLIInput is a drop-in replacement InputProvider that opens
-// a TUI form once and then serves collected values to AssembleInput.
-type CLIInput struct {
+type TUIInput struct {
 	Endpoint  request.Endpoint
 	collected bool
 	provider  PrefilledProvider
 }
 
-func (c *CLIInput) ensureCollected() {
+func (c *TUIInput) ensureCollected() {
 	if c.collected {
 		return
 	}
@@ -53,17 +49,17 @@ func (c *CLIInput) ensureCollected() {
 	}
 }
 
-func (c *CLIInput) GetPathParam(p spec.Parameter) string {
+func (c *TUIInput) GetPathParam(p spec.Parameter) string {
 	c.ensureCollected()
 	return c.provider.GetPathParam(p)
 }
 
-func (c *CLIInput) GetQueryParam(p spec.Parameter) string {
+func (c *TUIInput) GetQueryParam(p spec.Parameter) string {
 	c.ensureCollected()
 	return c.provider.GetQueryParam(p)
 }
 
-func (c *CLIInput) GetRequestBody() string {
+func (c *TUIInput) GetRequestBody() string {
 	c.ensureCollected()
 	return c.provider.GetRequestBody()
 }
@@ -74,58 +70,55 @@ type paramField struct {
 }
 
 type paramFormModel struct {
-    ep           request.Endpoint
-    pathFields   []paramField
-    queryFields  []paramField
-    bodyArea     textarea.Model
-    hasBody      bool
-    focusedIndex int
-    width        int
-    height       int
+	ep           request.Endpoint
+	pathFields   []paramField
+	queryFields  []paramField
+	bodyArea     textarea.Model
+	hasBody      bool
+	focusedIndex int
+	width        int
+	height       int
 }
 
 func newParamFormModel(ep request.Endpoint) paramFormModel {
-    var pathFields []paramField
-    var queryFields []paramField
-    for _, p := range ep.Operation.Parameters {
-        if !p.Required { // 入力不要な可任項目は表示しない
-            continue
-        }
-        ti := textinput.New()
-        ti.Prompt = "> "
-        ti.Placeholder = fmt.Sprintf("%s (%s)", p.Name, p.Schema.Type)
-        if p.In == "path" {
-            pathFields = append(pathFields, paramField{p: p, input: ti})
-        } else if p.In == "query" {
-            queryFields = append(queryFields, paramField{p: p, input: ti})
-        }
-    }
+	var pathFields []paramField
+	var queryFields []paramField
+	for _, p := range ep.Operation.Parameters {
+		ti := textinput.New()
+		ti.Prompt = "> "
+		ti.Placeholder = fmt.Sprintf("%s (%s)", p.Name, p.Schema.Type)
+		switch p.In {
+		case "path":
+			pathFields = append(pathFields, paramField{p: p, input: ti})
+		case "query":
+			queryFields = append(queryFields, paramField{p: p, input: ti})
+		}
+	}
 
-    ta := textarea.New()
-    ta.Placeholder = "{\n  \"example\": \"value\"\n}"
-    ta.ShowLineNumbers = false
-    ta.MaxWidth = 0 // no intrinsic limit; outer layout constrains it
-    hasBody := ep.Operation.RequestBody != nil
+	ta := textarea.New()
+	ta.Placeholder = "{\n  \"example\": \"value\"\n}"
+	ta.ShowLineNumbers = false
+	ta.MaxWidth = 0
+	hasBody := ep.Operation.RequestBody != nil
 
-    m := paramFormModel{
-        ep:           ep,
-        pathFields:   pathFields,
-        queryFields:  queryFields,
-        bodyArea:     ta,
-        hasBody:      hasBody,
-        focusedIndex: 0,
-    }
+	m := paramFormModel{
+		ep:           ep,
+		pathFields:   pathFields,
+		queryFields:  queryFields,
+		bodyArea:     ta,
+		hasBody:      hasBody,
+		focusedIndex: 0,
+	}
 
-	// Set initial focus to the first available control
 	if len(m.pathFields) > 0 {
 		m.pathFields[0].input.Focus()
 	} else if len(m.queryFields) > 0 {
 		m.queryFields[0].input.Focus()
-    } else if m.hasBody {
-        m.bodyArea.Focus()
-    }
+	} else if m.hasBody {
+		m.bodyArea.Focus()
+	}
 
-    return m
+	return m
 }
 
 func (m paramFormModel) Init() tea.Cmd { return nil }
@@ -168,20 +161,19 @@ func (m paramFormModel) View() string {
 
 func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-    case tea.WindowSizeMsg:
-        m.width = msg.Width
-        m.height = msg.Height
-        // resize text areas
-        if m.hasBody {
-            m.bodyArea.SetWidth(m.width - 8)
-            m.bodyArea.SetHeight(m.height / 3)
-        }
-        for i := range m.pathFields {
-            m.pathFields[i].input.Width = m.width - 8
-        }
-        for i := range m.queryFields {
-            m.queryFields[i].input.Width = m.width - 8
-        }
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		if m.hasBody {
+			m.bodyArea.SetWidth(m.width - 8)
+			m.bodyArea.SetHeight(m.height / 3)
+		}
+		for i := range m.pathFields {
+			m.pathFields[i].input.Width = m.width - 8
+		}
+		for i := range m.queryFields {
+			m.queryFields[i].input.Width = m.width - 8
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+s":
@@ -197,7 +189,6 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.applyFocus()
 			return m, nil
 		case "enter":
-			// Enter submits unless focused on body textarea (where Enter means newline)
 			if _, kind := m.currentIndex(); kind == "body" {
 				var cmd tea.Cmd
 				m.bodyArea, cmd = m.bodyArea.Update(msg)
@@ -205,28 +196,26 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "up":
-            if _, kind := m.currentIndex(); kind == "body" {
-                // let textarea handle cursor movement
-                var cmd tea.Cmd
-                m.bodyArea, cmd = m.bodyArea.Update(msg)
-                return m, cmd
-            }
-            m.focusPrev()
-            m.applyFocus()
-            return m, nil
-        case "down":
-            if _, kind := m.currentIndex(); kind == "body" {
-                var cmd tea.Cmd
-                m.bodyArea, cmd = m.bodyArea.Update(msg)
-                return m, cmd
-            }
-            m.focusNext()
-            m.applyFocus()
-            return m, nil
-        }
-    }
+			if _, kind := m.currentIndex(); kind == "body" {
+				var cmd tea.Cmd
+				m.bodyArea, cmd = m.bodyArea.Update(msg)
+				return m, cmd
+			}
+			m.focusPrev()
+			m.applyFocus()
+			return m, nil
+		case "down":
+			if _, kind := m.currentIndex(); kind == "body" {
+				var cmd tea.Cmd
+				m.bodyArea, cmd = m.bodyArea.Update(msg)
+				return m, cmd
+			}
+			m.focusNext()
+			m.applyFocus()
+			return m, nil
+		}
+	}
 
-	// delegate updates to focused input
 	if idx, kind := m.currentIndex(); kind == "path" {
 		var cmd tea.Cmd
 		m.pathFields[idx].input, cmd = m.pathFields[idx].input.Update(msg)
@@ -243,64 +232,62 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *paramFormModel) currentIndex() (int, string) {
-    // path fields, then query fields, then optional body (index == -1)
-    if m.focusedIndex < len(m.pathFields) {
-        return m.focusedIndex, "path"
-    }
-    j := m.focusedIndex - len(m.pathFields)
-    if j < len(m.queryFields) {
-        return j, "query"
-    }
-    if m.hasBody {
-        return -1, "body"
-    }
-    // fallback: clamp to last query field
-    if len(m.queryFields) > 0 {
-        return len(m.queryFields) - 1, "query"
-    }
-    if len(m.pathFields) > 0 {
-        return len(m.pathFields) - 1, "path"
-    }
-    return -1, "none"
+	if m.focusedIndex < len(m.pathFields) {
+		return m.focusedIndex, "path"
+	}
+	j := m.focusedIndex - len(m.pathFields)
+	if j < len(m.queryFields) {
+		return j, "query"
+	}
+	if m.hasBody {
+		return -1, "body"
+	}
+	if len(m.queryFields) > 0 {
+		return len(m.queryFields) - 1, "query"
+	}
+	if len(m.pathFields) > 0 {
+		return len(m.pathFields) - 1, "path"
+	}
+	return -1, "none"
 }
 
 func (m *paramFormModel) focusNext() {
-    total := len(m.pathFields) + len(m.queryFields)
-    if m.hasBody {
-        total++
-    }
-    m.focusedIndex = (m.focusedIndex + 1) % total
+	total := len(m.pathFields) + len(m.queryFields)
+	if m.hasBody {
+		total++
+	}
+	m.focusedIndex = (m.focusedIndex + 1) % total
 }
 
 func (m *paramFormModel) focusPrev() {
-    total := len(m.pathFields) + len(m.queryFields)
-    if m.hasBody {
-        total++
-    }
-    m.focusedIndex = (m.focusedIndex - 1 + total) % total
+	total := len(m.pathFields) + len(m.queryFields)
+	if m.hasBody {
+		total++
+	}
+	m.focusedIndex = (m.focusedIndex - 1 + total) % total
 }
 
 func (m *paramFormModel) blurAll() {
-    for i := range m.pathFields {
-        m.pathFields[i].input.Blur()
-    }
-    for i := range m.queryFields {
-        m.queryFields[i].input.Blur()
-    }
-    if m.hasBody {
-        m.bodyArea.Blur()
-    }
+	for i := range m.pathFields {
+		m.pathFields[i].input.Blur()
+	}
+	for i := range m.queryFields {
+		m.queryFields[i].input.Blur()
+	}
+	if m.hasBody {
+		m.bodyArea.Blur()
+	}
 }
 
 func (m *paramFormModel) applyFocus() {
-    m.blurAll()
-    if idx, kind := m.currentIndex(); kind == "path" {
-        m.pathFields[idx].input.Focus()
-    } else if kind == "query" {
-        m.queryFields[idx].input.Focus()
-    } else if kind == "body" && m.hasBody {
-        m.bodyArea.Focus()
-    }
+	m.blurAll()
+	if idx, kind := m.currentIndex(); kind == "path" {
+		m.pathFields[idx].input.Focus()
+	} else if kind == "query" {
+		m.queryFields[idx].input.Focus()
+	} else if kind == "body" && m.hasBody {
+		m.bodyArea.Focus()
+	}
 }
 
 func (m paramFormModel) toProvider() PrefilledProvider {
