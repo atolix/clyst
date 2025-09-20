@@ -5,6 +5,7 @@ import (
 
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
+	"github.com/atolix/clyst/theme"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -12,7 +13,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// PrefilledProvider implements request.InputProvider with values collected in TUI.
 type PrefilledProvider struct {
 	path  map[string]string
 	query map[string]string
@@ -124,17 +124,17 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 func (m paramFormModel) Init() tea.Cmd { return nil }
 
 func (m paramFormModel) View() string {
-    title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#87cefa")).Render("Parameters")
-    section := lipgloss.NewStyle().Bold(true)
-    box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6495ed")).Padding(1, 2)
-    outer := lipgloss.NewStyle().MarginBottom(2)
+	title := lipgloss.NewStyle().Bold(true).Foreground(theme.Primary).Render("Parameters")
+	section := lipgloss.NewStyle().Bold(true)
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2)
+	outer := lipgloss.NewStyle().MarginBottom(2)
 
 	var sections []string
 
 	if len(m.pathFields) > 0 {
 		var pathViews []string
 		for _, f := range m.pathFields {
-			label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
+			label := lipgloss.NewStyle().Foreground(theme.Muted).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
 			pathViews = append(pathViews, label+"\n"+f.input.View())
 		}
 		sections = append(sections, section.Render("Path Params"))
@@ -147,7 +147,7 @@ func (m paramFormModel) View() string {
 		}
 		var queryViews []string
 		for _, f := range m.queryFields {
-			label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
+			label := lipgloss.NewStyle().Foreground(theme.Muted).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
 			queryViews = append(queryViews, label+"\n"+f.input.View())
 		}
 		sections = append(sections, section.Render("Query Params"))
@@ -169,7 +169,7 @@ func (m paramFormModel) View() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
-    return outer.Render(lipgloss.JoinVertical(lipgloss.Left, title, box.Render(content)))
+	return outer.Render(lipgloss.JoinVertical(lipgloss.Left, title, box.Render(content)))
 }
 
 func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
