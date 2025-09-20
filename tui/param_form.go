@@ -128,33 +128,45 @@ func (m paramFormModel) View() string {
 	section := lipgloss.NewStyle().Bold(true)
 	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6495ed")).Padding(1, 2)
 
-	var pathViews []string
-	for _, f := range m.pathFields {
-		label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
-		pathViews = append(pathViews, label+"\n"+f.input.View())
+	var sections []string
+
+	if len(m.pathFields) > 0 {
+		var pathViews []string
+		for _, f := range m.pathFields {
+			label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
+			pathViews = append(pathViews, label+"\n"+f.input.View())
+		}
+		sections = append(sections, section.Render("Path Params"))
+		sections = append(sections, lipgloss.JoinVertical(lipgloss.Left, pathViews...))
 	}
 
-	var queryViews []string
-	for _, f := range m.queryFields {
-		label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
-		queryViews = append(queryViews, label+"\n"+f.input.View())
+	if len(m.queryFields) > 0 {
+		if len(sections) > 0 {
+			sections = append(sections, "")
+		}
+		var queryViews []string
+		for _, f := range m.queryFields {
+			label := lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Render(fmt.Sprintf("%s (%s)", f.p.Name, f.p.Schema.Type))
+			queryViews = append(queryViews, label+"\n"+f.input.View())
+		}
+		sections = append(sections, section.Render("Query Params"))
+		sections = append(sections, lipgloss.JoinVertical(lipgloss.Left, queryViews...))
 	}
 
-	bodyTitle := section.Render("Body (JSON)")
-	bodyView := m.bodyArea.View()
+	if m.hasBody {
+		if len(sections) > 0 {
+			sections = append(sections, "")
+		}
+		sections = append(sections, section.Render("Body (JSON)"))
+		sections = append(sections, m.bodyArea.View())
+	}
 
-	content := lipgloss.JoinVertical(lipgloss.Left,
-		section.Render("Path Params"),
-		lipgloss.JoinVertical(lipgloss.Left, pathViews...),
-		"",
-		section.Render("Query Params"),
-		lipgloss.JoinVertical(lipgloss.Left, queryViews...),
-		"",
-		bodyTitle,
-		bodyView,
-		"",
-		lipgloss.NewStyle().Faint(true).Render("Tab/Shift+Tab: move  Enter: submit (Bodyでは改行)  Esc: cancel"),
-	)
+	if len(sections) > 0 {
+		sections = append(sections, "")
+	}
+	sections = append(sections, lipgloss.NewStyle().Faint(true).Render("Tab/Shift+Tab: move  Enter: submit (Bodyでは改行)  Esc: cancel"))
+
+	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
 	return lipgloss.JoinVertical(lipgloss.Left, title, box.Render(content))
 }
