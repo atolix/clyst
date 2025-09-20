@@ -1,16 +1,16 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "sort"
+	"fmt"
+	"os"
+	"sort"
 
-    "github.com/atolix/clyst/output"
-    "github.com/atolix/clyst/request"
-    "github.com/atolix/clyst/spec"
-    "github.com/atolix/clyst/tui"
+	"github.com/atolix/clyst/output"
+	"github.com/atolix/clyst/request"
+	"github.com/atolix/clyst/spec"
+	"github.com/atolix/clyst/tui"
 
-    "github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/list"
 )
 
 func main() {
@@ -70,6 +70,5 @@ func main() {
 		panic(err)
 	}
 
-    // Render and print
-    fmt.Println(output.Render(result))
+	fmt.Println(output.Render(result))
 }
