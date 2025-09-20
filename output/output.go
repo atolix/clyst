@@ -83,7 +83,7 @@ func prepareResponseBody(result request.ResultInfo) (string, string) {
 func renderHeaders(result request.ResultInfo, s styles) string {
 	var lines []string
 	for k, v := range result.Response.Headers {
-		lines = append(lines, s.label.Render(k+":")+" "+s.value.Render(strings.Join(v, ", ")))
+		lines = append(lines, "  "+s.label.Render(k+":")+" "+s.value.Render(strings.Join(v, ", ")))
 	}
 	return strings.Join(lines, "\n")
 }
