@@ -96,7 +96,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	listWidth := m.width / 3
-	detailWidth := m.width - listWidth
+	detailWidth := m.width / 3
 
 	height := m.height / 3
 
@@ -122,7 +122,13 @@ func DetailBox(m Model, width int, height int) string {
 		detail = "No item selected"
 	}
 
-	return lipgloss.NewStyle().Width(width).Height(height).Padding(1, 2).Border(lipgloss.RoundedBorder()).Render(detail)
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Padding(1, 2).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#6495ed")).
+		Render(detail)
 }
 
 func Run(items []list.Item) (*EndpointItem, error) {
