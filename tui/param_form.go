@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// PrefilledProvider implements request.InputProvider with values collected in TUI.
 type PrefilledProvider struct {
 	path  map[string]string
 	query map[string]string
@@ -124,10 +123,10 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 func (m paramFormModel) Init() tea.Cmd { return nil }
 
 func (m paramFormModel) View() string {
-    title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#87cefa")).Render("Parameters")
-    section := lipgloss.NewStyle().Bold(true)
-    box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6495ed")).Padding(1, 2)
-    outer := lipgloss.NewStyle().MarginBottom(2)
+	title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#87cefa")).Render("Parameters")
+	section := lipgloss.NewStyle().Bold(true)
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6495ed")).Padding(1, 2)
+	outer := lipgloss.NewStyle().MarginBottom(2)
 
 	var sections []string
 
@@ -169,7 +168,7 @@ func (m paramFormModel) View() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
-    return outer.Render(lipgloss.JoinVertical(lipgloss.Left, title, box.Render(content)))
+	return outer.Render(lipgloss.JoinVertical(lipgloss.Left, title, box.Render(content)))
 }
 
 func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
