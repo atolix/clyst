@@ -3,6 +3,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -17,9 +18,30 @@ type Endpoint struct {
 	Operation spec.Operation
 }
 
-func Send(ep Endpoint, input InputResult) (map[string]any, error) {
+type RequestInfo struct {
+	Method string
+	URL    string
+	Body   string
+}
+
+type ResponseInfo struct {
+	StatusCode  int
+	Status      string
+	Elapsed     time.Duration
+	Headers     http.Header
+	ContentType string
+	RawBody     []byte
+	JSONBody    any // if JSON parse succeeded; otherwise nil
+}
+
+type ResultInfo struct {
+	Request  RequestInfo
+	Response ResponseInfo
+}
+
+func Send(ep Endpoint, input InputResult) (ResultInfo, error) {
 	req, err := http.NewRequest(strings.ToUpper(ep.Method), input.URL, input.Body)
-	if input.Body != nil {
+	if input.Body != nil && strings.TrimSpace(input.RawBody) != "" {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
@@ -32,19 +54,32 @@ func Send(ep Endpoint, input InputResult) (map[string]any, error) {
 	defer res.Body.Close()
 	elapsed := time.Since(start)
 
-	var resBody any
-	json.NewDecoder(res.Body).Decode(&resBody)
+	bodyBytes, _ := io.ReadAll(res.Body)
+	contentType := res.Header.Get("Content-Type")
 
-	return map[string]any{
-		"request": map[string]any{
-			"method": ep.Method,
-			"url":    input.URL,
-			"body":   input.RawBody,
+	var jsonBody any
+	if strings.Contains(contentType, "application/json") ||
+		(len(bodyBytes) > 0 && (bodyBytes[0] == '{' || bodyBytes[0] == '[')) {
+		var v any
+		if err := json.Unmarshal(bodyBytes, &v); err == nil {
+			jsonBody = v
+		}
+	}
+
+	return ResultInfo{
+		Request: RequestInfo{
+			Method: ep.Method,
+			URL:    input.URL,
+			Body:   input.RawBody,
 		},
-		"response": map[string]any{
-			"status":  res.StatusCode,
-			"elapsed": elapsed.String(),
-			"body":    resBody,
+		Response: ResponseInfo{
+			StatusCode:  res.StatusCode,
+			Status:      res.Status,
+			Elapsed:     elapsed,
+			Headers:     res.Header.Clone(),
+			ContentType: contentType,
+			RawBody:     bodyBytes,
+			JSONBody:    jsonBody,
 		},
 	}, nil
 }
