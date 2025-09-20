@@ -30,7 +30,6 @@ func defaultStyles() styles {
 	}
 }
 
-// Render returns a pretty, styled string for a SendResult.
 func Render(result request.ResultInfo) string {
 	s := defaultStyles()
 	reqBox := renderRequestBox(result, s)

@@ -60,7 +60,7 @@ func main() {
 	}
 
 	baseURL := "https://jsonplaceholder.typicode.com"
-	input, err := request.AssembleInput(baseURL, ep, request.CLIInput{})
+	input, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
 	if err != nil {
 		panic(err)
 	}
