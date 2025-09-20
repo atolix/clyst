@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/atolix/clyst/request"
+	"github.com/atolix/clyst/theme"
 
 	"github.com/alecthomas/chroma/quick"
 	"github.com/charmbracelet/lipgloss"
@@ -22,11 +23,11 @@ type styles struct {
 
 func defaultStyles() styles {
 	return styles{
-		title:   lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#87cefa")),
-		label:   lipgloss.NewStyle().Foreground(lipgloss.Color("#8a8f98")).Bold(true),
-		value:   lipgloss.NewStyle().Foreground(lipgloss.Color("#e6e6e6")),
-		box:     lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6495ed")).Padding(1, 2),
-		codeBox: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("#5f87af")).Padding(0, 1).MarginTop(0),
+		title:   lipgloss.NewStyle().Bold(true).Foreground(theme.Primary),
+		label:   lipgloss.NewStyle().Foreground(theme.Muted).Bold(true),
+		value:   lipgloss.NewStyle().Foreground(theme.Text),
+		box:     lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2),
+		codeBox: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(theme.CodeBorder).Padding(0, 1).MarginTop(0),
 	}
 }
 

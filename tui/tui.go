@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/atolix/clyst/spec"
+	"github.com/atolix/clyst/theme"
 
 	"github.com/alecthomas/chroma/quick"
 	"github.com/charmbracelet/bubbles/list"
@@ -42,21 +43,21 @@ func NewStyleDelegate() list.DefaultDelegate {
 		PaddingLeft(2)
 
 	d.Styles.SelectedTitle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#87cefa")).
+		Foreground(theme.Primary).
 		MarginLeft(0).
 		PaddingLeft(2).
 		BorderLeft(true).
 		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(lipgloss.Color("#6495ed")).
+		BorderForeground(theme.Border).
 		Bold(true)
 
 	d.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#87cefa")).
+		Foreground(theme.Primary).
 		MarginLeft(0).
 		PaddingLeft(2).
 		BorderLeft(true).
 		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(lipgloss.Color("#6495ed"))
+		BorderForeground(theme.Border)
 
 	return d
 }
@@ -127,7 +128,7 @@ func DetailBox(m Model, width int, height int) string {
 		Height(height).
 		Padding(1, 2).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#6495ed")).
+		BorderForeground(theme.Border).
 		Render(detail)
 }
 
