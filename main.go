@@ -1,17 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 
+	"github.com/atolix/clyst/output"
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/tui"
 
-	"github.com/alecthomas/chroma/quick"
 	"github.com/charmbracelet/bubbles/list"
 )
 
@@ -72,19 +70,5 @@ func main() {
 		panic(err)
 	}
 
-	encoded, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "encode error:", err)
-		return
-	}
-
-	var buf bytes.Buffer
-
-	if err := quick.Highlight(&buf, string(encoded), "json", "terminal", "github"); err != nil {
-		fmt.Fprintln(os.Stderr, "highlight error:", err)
-		os.Stdout.Write(encoded)
-		return
-	}
-
-	os.Stdout.Write(buf.Bytes())
+	fmt.Println(output.Render(result))
 }
