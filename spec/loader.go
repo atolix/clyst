@@ -7,8 +7,8 @@ import (
 )
 
 type OpenApiSpec struct {
-    BaseURL string                          `yaml:"base_url"`
-    Paths   map[string]map[string]Operation `yaml:"paths"`
+	BaseURL string                          `yaml:"base_url"`
+	Paths   map[string]map[string]Operation `yaml:"paths"`
 }
 
 type Parameter struct {
