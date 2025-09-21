@@ -28,6 +28,7 @@ func newSelectSpecModel(title string, items []list.Item) selectSpecModel {
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
+
 	return selectSpecModel{list: l}
 }
 
@@ -68,7 +69,7 @@ func SelectSpec(title string, options []SpecItem) (string, error) {
 		return "", err
 	}
 
-	fm := final.(selectModel)
+	fm := final.(selectSpecModel)
 	if fm.Selected == nil {
 		return "", nil
 	}
