@@ -19,16 +19,16 @@ var DefaultSpecNames = []string{
 	"openapi.yaml",
 }
 
-func Load() (*Config, error) {
-	candidates := []string{
-		".clyst.yml",
-		".clyst.yaml",
-		"clyst.yml",
-		"clyst.yaml",
-	}
+var DefaultCandicates = []string{
+	".clyst.yml",
+	".clyst.yaml",
+	"clyst.yml",
+	"clyst.yaml",
+}
 
+func Load() (*Config, error) {
 	var path string
-	for _, c := range candidates {
+	for _, c := range DefaultCandicates {
 		if _, err := os.Stat(c); err == nil {
 			path = c
 			break
