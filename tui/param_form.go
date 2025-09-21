@@ -248,9 +248,9 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.queryFields[idx].input, cmd = m.queryFields[idx].input.Update(msg)
 		return m, cmd
 	}
-
 	var cmd tea.Cmd
 	m.bodyArea, cmd = m.bodyArea.Update(msg)
+
 	return m, cmd
 }
 
@@ -271,6 +271,7 @@ func (m *paramFormModel) currentIndex() (int, string) {
 	if len(m.pathFields) > 0 {
 		return len(m.pathFields) - 1, "path"
 	}
+
 	return -1, "none"
 }
 
@@ -322,5 +323,6 @@ func (m paramFormModel) toProvider() PrefilledProvider {
 	for _, f := range m.queryFields {
 		queryVals[f.p.Name] = f.input.Value()
 	}
+
 	return PrefilledProvider{path: pathVals, query: queryVals, body: m.bodyArea.Value()}
 }

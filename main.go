@@ -27,8 +27,7 @@ func main() {
 	for {
 		found, err := spec.DiscoverSpecFiles(".", names)
 		if err != nil {
-			fmt.Println("Discovery error:", err)
-			os.Exit(1)
+			panic(err)
 		}
 
 		if len(found) == 0 {
@@ -46,13 +45,13 @@ func main() {
 					Value:     p,
 				})
 			}
-			chosen, err := tui.SelectSpec("Select an OpenAPI spec", opts)
+			selected, err := tui.SelectSpec("Select an OpenAPI spec", opts)
 			if err != nil {
 				fmt.Println("TUI running error:", err)
 				os.Exit(1)
 			}
 
-			specPath = chosen
+			specPath = selected
 		}
 
 		specDoc, err := spec.Load(specPath)
@@ -89,8 +88,7 @@ func main() {
 
 		runRes, err := tui.Run(items)
 		if err != nil {
-			fmt.Println("TUI running error:", err)
-			os.Exit(1)
+			panic(err)
 		}
 
 		if runRes.SwitchSpecSelect {

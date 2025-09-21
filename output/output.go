@@ -37,6 +37,7 @@ func Render(result request.ResultInfo) string {
 	bodyStr, lexer := laxerResponseBody(result)
 	headers := renderHeaders(result, s)
 	respBox := renderResponseBox(result, headers, bodyStr, lexer, s)
+
 	return lipgloss.JoinVertical(lipgloss.Left, reqBox, "\n", respBox)
 }
 
@@ -57,6 +58,7 @@ func renderRequestBox(result request.ResultInfo, s styles) string {
 		}
 		lines = append(lines, s.label.Render("Body:")+"\n"+s.codeBox.Render(rendered))
 	}
+
 	return s.title.Render("Request") + "\n" + s.box.Render(strings.Join(lines, "\n"))
 }
 
@@ -85,6 +87,7 @@ func renderHeaders(result request.ResultInfo, s styles) string {
 	for k, v := range result.Response.Headers {
 		lines = append(lines, "  "+s.label.Render(k+":")+" "+s.value.Render(strings.Join(v, ", ")))
 	}
+
 	return strings.Join(lines, "\n")
 }
 
@@ -107,6 +110,7 @@ func renderResponseBox(result request.ResultInfo, headersSection, bodyStr, lexer
 		content += "\n" + s.label.Render("Headers:") + "\n" + headersSection
 	}
 	content += "\n" + s.label.Render("Body:") + "\n" + s.codeBox.Render(bodyBuf.String())
+
 	return s.title.Render("Response") + "\n" + s.box.Render(content)
 }
 
@@ -115,5 +119,6 @@ func httpStatusText(status string) string {
 	if len(parts) == 2 {
 		return parts[1]
 	}
+
 	return status
 }

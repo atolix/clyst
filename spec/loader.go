@@ -178,5 +178,6 @@ func parseLocalRef(ref string) (name string, kind string, err error) {
 
 	kind = parts[1]
 	name = path.Clean(strings.Join(parts[2:], "/"))
+
 	return name, kind, nil
 }

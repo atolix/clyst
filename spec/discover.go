@@ -61,5 +61,6 @@ func distinct(in []string) []string {
 		m[v] = struct{}{}
 		out = append(out, v)
 	}
+
 	return out
 }
