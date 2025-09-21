@@ -56,6 +56,10 @@ func main() {
 		}
 
 		specDoc, err := spec.Load(specPath)
+		if specDoc == nil {
+			return
+		}
+
 		if err != nil {
 			panic(err)
 		}
