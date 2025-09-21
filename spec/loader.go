@@ -11,7 +11,7 @@ import (
 )
 
 type OpenApiSpec struct {
-	BaseURL string                          `yaml:"base_url"`
+	BaseURL string                          `yaml:"baseUrl"`
 	Paths   map[string]map[string]Operation `yaml:"paths"`
 }
 
