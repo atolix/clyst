@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 
+	"github.com/atolix/clyst/config"
 	"github.com/atolix/clyst/output"
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
@@ -14,7 +17,46 @@ import (
 )
 
 func main() {
-	spec, err := spec.Load("api_spec.yml")
+	cfg, _ := config.Load()
+	names, err := config.DefineSpecNames(cfg)
+	if err != nil {
+		fmt.Println("Config error:", err)
+		os.Exit(1)
+	}
+
+	found, err := spec.DiscoverSpecFiles(".", names)
+	if err != nil {
+		fmt.Println("Discovery error:", err)
+		os.Exit(1)
+	}
+	if len(found) == 0 {
+		fmt.Printf("No spec file found. Looked for: %s\n", strings.Join(names, ", "))
+		os.Exit(1)
+	}
+
+	specPath := found[0]
+	if len(found) > 1 {
+		var opts []tui.StringItem
+		for _, p := range found {
+			opts = append(opts, tui.StringItem{
+				TitleText: p,
+				DescText:  filepath.Dir(p),
+				Value:     p,
+			})
+		}
+		chosen, err := tui.SelectOne("Select an OpenAPI spec", opts)
+		if err != nil {
+			fmt.Println("TUI running error:", err)
+			os.Exit(1)
+		}
+		if chosen == "" {
+			fmt.Println("No spec selected")
+			return
+		}
+		specPath = chosen
+	}
+
+	spec, err := spec.Load(specPath)
 	if err != nil {
 		panic(err)
 	}

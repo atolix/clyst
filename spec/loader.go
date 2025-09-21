@@ -37,14 +37,14 @@ type Operation struct {
 }
 
 func Load(filename string) (*OpenApiSpec, error) {
-	data, err := os.ReadFile("api_spec.yml")
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var spec OpenApiSpec
 	if err := yaml.Unmarshal(data, &spec); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &spec, nil
