@@ -50,6 +50,7 @@ func main() {
 			fmt.Println("TUI running error:", err)
 			os.Exit(1)
 		}
+
 		if chosen == "" {
 			fmt.Println("No spec selected")
 			return
@@ -76,8 +77,9 @@ func main() {
 	sort.Slice(endpoints, func(i, j int) bool {
 		if endpoints[i].Method == endpoints[j].Method {
 			return endpoints[i].Path < endpoints[j].Path
+		} else {
+			return endpoints[i].Method < endpoints[j].Method
 		}
-		return endpoints[i].Method < endpoints[j].Method
 	})
 
 	var items []list.Item
