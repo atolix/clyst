@@ -7,7 +7,8 @@ import (
 )
 
 type OpenApiSpec struct {
-	Paths map[string]map[string]Operation `yaml:"paths"`
+    BaseURL string                          `yaml:"base_url"`
+    Paths   map[string]map[string]Operation `yaml:"paths"`
 }
 
 type Parameter struct {
@@ -37,14 +38,14 @@ type Operation struct {
 }
 
 func Load(filename string) (*OpenApiSpec, error) {
-	data, err := os.ReadFile("api_spec.yml")
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var spec OpenApiSpec
 	if err := yaml.Unmarshal(data, &spec); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &spec, nil
