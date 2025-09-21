@@ -17,23 +17,23 @@ func (i SpecItem) Title() string       { return i.TitleText }
 func (i SpecItem) Description() string { return i.DescText }
 func (i SpecItem) FilterValue() string { return i.TitleText }
 
-type selectModel struct {
+type selectSpecModel struct {
 	list     list.Model
 	Selected *SpecItem
 }
 
-func newSelectModel(title string, items []list.Item) selectModel {
+func newSelectSpecModel(title string, items []list.Item) selectSpecModel {
 	const defaultWidth = 60
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 20)
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
-	return selectModel{list: l}
+	return selectSpecModel{list: l}
 }
 
-func (m selectModel) Init() tea.Cmd { return nil }
+func (m selectSpecModel) Init() tea.Cmd { return nil }
 
-func (m selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m selectSpecModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -50,7 +50,7 @@ func (m selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m selectModel) View() string { return m.list.View() }
+func (m selectSpecModel) View() string { return m.list.View() }
 
 func SelectSpec(title string, options []SpecItem) (string, error) {
 	if len(options) == 0 {
@@ -62,7 +62,7 @@ func SelectSpec(title string, options []SpecItem) (string, error) {
 		items = append(items, o)
 	}
 
-	m := newSelectModel(title, items)
+	m := newSelectSpecModel(title, items)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return "", err
