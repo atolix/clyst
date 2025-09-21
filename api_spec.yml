@@ -12,28 +12,14 @@ paths:
     get:
       summary: Get all users
       parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/Limit'
       responses:
         "200":
           description: OK
     post:
       summary: Create a new user
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name, email]
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
+        $ref: '#/components/requestBodies/NewUser'
       responses:
         "201":
           description: Created
@@ -42,11 +28,7 @@ paths:
     get:
       summary: Get user by ID
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/UserId'
       responses:
         "200":
           description: OK
@@ -55,11 +37,7 @@ paths:
     put:
       summary: Update user by ID
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/UserId'
       requestBody:
         required: true
         content:
@@ -140,11 +118,7 @@ paths:
     get:
       summary: Get post by ID (with header param)
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/PostId'
         - name: X-Request-Id
           in: header
           required: false
@@ -228,16 +202,51 @@ paths:
     get:
       summary: Get comment by ID
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/CommentId'
       responses:
         "200":
           description: OK
         "404":
           description: Not found
+
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    PostId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    CommentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+  requestBodies:
+    NewUser:
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name, email]
+            properties:
+              name:
+                type: string
+              email:
+                type: string
 
   /health:
     get:
