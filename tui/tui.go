@@ -36,11 +36,9 @@ type Model struct {
 func NewStyleDelegate() list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
-	d.Styles.NormalTitle = d.Styles.NormalTitle.
-		PaddingLeft(2)
+	d.Styles.NormalTitle = d.Styles.NormalTitle.PaddingLeft(2)
 
-	d.Styles.NormalDesc = d.Styles.NormalDesc.
-		PaddingLeft(2)
+	d.Styles.NormalDesc = d.Styles.NormalDesc.PaddingLeft(2)
 
 	d.Styles.SelectedTitle = lipgloss.NewStyle().
 		Foreground(theme.Primary).
@@ -67,6 +65,7 @@ func NewModel(items []list.Item) Model {
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
 	l.Title = "Api Endpoints"
 	l.SetShowStatusBar(false)
+
 	return Model{list: l}
 }
 
@@ -92,13 +91,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+
 	return m, cmd
 }
 
 func (m Model) View() string {
 	listWidth := m.width / 3
 	detailWidth := m.width / 3
-
 	height := m.height / 3
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, listWidth, height), DetailBox(m, detailWidth, height))
@@ -138,6 +137,7 @@ func Run(items []list.Item) (*EndpointItem, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	fm := final.(Model)
 
 	return fm.Selected, nil
