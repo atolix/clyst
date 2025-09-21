@@ -52,10 +52,6 @@ func main() {
 				os.Exit(1)
 			}
 
-			if chosen == "" {
-				fmt.Println("No spec selected")
-				return
-			}
 			specPath = chosen
 		}
 
@@ -95,11 +91,6 @@ func main() {
 
 		if runRes.SwitchSpecSelect {
 			continue
-		}
-
-		if runRes.Selected == nil {
-			fmt.Println("No endpoint selected")
-			return
 		}
 
 		ep := request.Endpoint{
