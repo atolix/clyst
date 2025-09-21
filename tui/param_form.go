@@ -23,6 +23,7 @@ type TUIInput struct {
 	Endpoint  request.Endpoint
 	collected bool
 	provider  PrefilledProvider
+	canceled  bool
 }
 
 type paramField struct {
@@ -39,29 +40,31 @@ type paramFormModel struct {
 	focusedIndex int
 	width        int
 	height       int
+	canceled     bool
 }
 
 func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p.path[param.Name] }
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
 
-func CollectParams(ep request.Endpoint) (PrefilledProvider, error) {
+func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
 	m := newParamFormModel(ep)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
-		return PrefilledProvider{}, err
+		return PrefilledProvider{}, false, err
 	}
 	fm := final.(paramFormModel)
-	return fm.toProvider(), nil
+	return fm.toProvider(), fm.canceled, nil
 }
 
 func (c *TUIInput) ensureCollected() {
 	if c.collected {
 		return
 	}
-	if p, err := CollectParams(c.Endpoint); err == nil {
+	if p, canceled, err := CollectParams(c.Endpoint); err == nil {
 		c.provider = p
 		c.collected = true
+		c.canceled = canceled
 	}
 }
 
@@ -78,6 +81,10 @@ func (c *TUIInput) GetQueryParam(p spec.Parameter) string {
 func (c *TUIInput) GetRequestBody() string {
 	c.ensureCollected()
 	return c.provider.GetRequestBody()
+}
+
+func (c *TUIInput) Canceled() bool {
+	return c.canceled
 }
 
 func newParamFormModel(ep request.Endpoint) paramFormModel {
@@ -194,6 +201,7 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+s":
 			return m, tea.Quit
 		case "esc":
+			m.canceled = true
 			return m, tea.Quit
 		case "tab":
 			m.focusNext()
