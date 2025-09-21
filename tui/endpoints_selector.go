@@ -26,11 +26,17 @@ func (i EndpointItem) Description() string { return i.Operation.Summary }
 func (i EndpointItem) FilterValue() string { return i.Path }
 
 type Model struct {
-	list     list.Model
-	Selected *EndpointItem
-	result   string
-	width    int
-	height   int
+	list             list.Model
+	Selected         *EndpointItem
+	result           string
+	width            int
+	height           int
+	SwitchSpecSelect bool
+}
+
+type RunResult struct {
+	Selected         *EndpointItem
+	SwitchSpecSelect bool
 }
 
 func NewStyleDelegate() list.DefaultDelegate {
@@ -60,10 +66,10 @@ func NewStyleDelegate() list.DefaultDelegate {
 	return d
 }
 
-func NewModel(items []list.Item) Model {
+func NewEndpointsSelectorModel(items []list.Item) Model {
 	const defaultWidth = 50
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
-	l.Title = "Api Endpoints"
+	l.Title = "Api Endpoints  (press 'b' to back to spec selection)"
 	l.SetShowStatusBar(false)
 
 	return Model{list: l}
@@ -86,6 +92,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Selected = &i
 				return m, tea.Quit
 			}
+		case "b":
+			m.SwitchSpecSelect = true
+			return m, tea.Quit
 		}
 	}
 
@@ -131,14 +140,14 @@ func DetailBox(m Model, width int, height int) string {
 		Render(detail)
 }
 
-func Run(items []list.Item) (*EndpointItem, error) {
-	m := NewModel(items)
+func Run(items []list.Item) (RunResult, error) {
+	m := NewEndpointsSelectorModel(items)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
-		return nil, err
+		return RunResult{}, err
 	}
 
 	fm := final.(Model)
 
-	return fm.Selected, nil
+	return RunResult{Selected: fm.Selected, SwitchSpecSelect: fm.SwitchSpecSelect}, nil
 }
