@@ -37,15 +37,15 @@ func main() {
 
 	specPath := found[0]
 	if len(found) > 1 {
-		var opts []tui.SpecItem
+		var specs []tui.SpecItem
 		for _, p := range found {
-			opts = append(opts, tui.SpecItem{
+			specs = append(specs, tui.SpecItem{
 				TitleText: p,
 				DescText:  filepath.Dir(p),
 				Value:     p,
 			})
 		}
-		chosen, err := tui.SelectSpec("Select an OpenAPI spec", opts)
+		chosen, err := tui.SelectSpec("Select an OpenAPI spec", specs)
 		if err != nil {
 			fmt.Println("TUI running error:", err)
 			os.Exit(1)
