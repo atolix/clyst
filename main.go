@@ -29,6 +29,7 @@ func main() {
 		fmt.Println("Discovery error:", err)
 		os.Exit(1)
 	}
+
 	if len(found) == 0 {
 		fmt.Printf("No spec file found. Looked for: %s\n", strings.Join(names, ", "))
 		os.Exit(1)
@@ -36,15 +37,15 @@ func main() {
 
 	specPath := found[0]
 	if len(found) > 1 {
-		var opts []tui.StringItem
+		var opts []tui.SpecItem
 		for _, p := range found {
-			opts = append(opts, tui.StringItem{
+			opts = append(opts, tui.SpecItem{
 				TitleText: p,
 				DescText:  filepath.Dir(p),
 				Value:     p,
 			})
 		}
-		chosen, err := tui.SelectOne("Select an OpenAPI spec", opts)
+		chosen, err := tui.SelectSpec("Select an OpenAPI spec", opts)
 		if err != nil {
 			fmt.Println("TUI running error:", err)
 			os.Exit(1)

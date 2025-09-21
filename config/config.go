@@ -60,9 +60,11 @@ func DefineSpecNames(cfg *Config) ([]string, error) {
 	if cfg == nil {
 		return DefaultSpecNames, nil
 	}
+
 	if len(cfg.SpecFiles) == 0 {
 		return DefaultSpecNames, nil
 	}
+
 	out := make([]string, 0, len(cfg.SpecFiles))
 	for _, s := range cfg.SpecFiles {
 		if s == "" {
@@ -70,5 +72,6 @@ func DefineSpecNames(cfg *Config) ([]string, error) {
 		}
 		out = append(out, s)
 	}
+
 	return out, nil
 }
