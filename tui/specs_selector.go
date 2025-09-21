@@ -22,7 +22,7 @@ type selectSpecModel struct {
 	Selected *SpecItem
 }
 
-func newSelectSpecModel(title string, items []list.Item) selectSpecModel {
+func newSpecSelectorModel(title string, items []list.Item) selectSpecModel {
 	const defaultWidth = 60
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 20)
 	l.Title = title
@@ -63,7 +63,7 @@ func SelectSpec(title string, options []SpecItem) (string, error) {
 		items = append(items, o)
 	}
 
-	m := newSelectSpecModel(title, items)
+	m := newSpecSelectorModel(title, items)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return "", err

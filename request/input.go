@@ -20,7 +20,15 @@ type InputProvider interface {
 	GetRequestBody() string
 }
 
-func AssembleInput(baseURL string, ep Endpoint, provider InputProvider) (InputResult, error) {
+type CancelAware interface {
+	Canceled() bool
+}
+
+func AssembleInput(baseURL string, ep Endpoint, provider InputProvider) (InputResult, bool, error) {
+	if ca, ok := provider.(CancelAware); ok && ca.Canceled() {
+		return InputResult{}, true, nil
+	}
+
 	path := ep.Path
 
 	for _, p := range ep.Operation.Parameters {
@@ -41,16 +49,23 @@ func AssembleInput(baseURL string, ep Endpoint, provider InputProvider) (InputRe
 			}
 		}
 	}
+
+	if ca, ok := provider.(CancelAware); ok && ca.Canceled() {
+		return InputResult{}, true, nil
+	}
 	u.RawQuery = q.Encode()
 
 	var rawBody string
 	if ep.Operation.RequestBody != nil {
 		rawBody = provider.GetRequestBody()
+		if ca, ok := provider.(CancelAware); ok && ca.Canceled() {
+			return InputResult{}, true, nil
+		}
 	}
 
 	return InputResult{
 		URL:     u.String(),
 		RawBody: rawBody,
 		Body:    strings.NewReader(rawBody),
-	}, nil
+	}, false, nil
 }
