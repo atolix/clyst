@@ -102,7 +102,12 @@ func main() {
 		Operation: selected.Operation,
 	}
 
-	baseURL := "https://jsonplaceholder.typicode.com"
+	baseURL := spec.BaseURL
+	if strings.TrimSpace(baseURL) == "" {
+		fmt.Println("No BaseURL")
+		os.Exit(1)
+	}
+
 	input, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
 	if err != nil {
 		panic(err)
