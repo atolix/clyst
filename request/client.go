@@ -31,7 +31,7 @@ type ResponseInfo struct {
 	Headers     http.Header
 	ContentType string
 	RawBody     []byte
-	JSONBody    any // if JSON parse succeeded; otherwise nil
+	JSONBody    any
 }
 
 type ResultInfo struct {

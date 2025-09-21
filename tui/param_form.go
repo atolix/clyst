@@ -19,6 +19,28 @@ type PrefilledProvider struct {
 	body  string
 }
 
+type TUIInput struct {
+	Endpoint  request.Endpoint
+	collected bool
+	provider  PrefilledProvider
+}
+
+type paramField struct {
+	p     spec.Parameter
+	input textinput.Model
+}
+
+type paramFormModel struct {
+	ep           request.Endpoint
+	pathFields   []paramField
+	queryFields  []paramField
+	bodyArea     textarea.Model
+	hasBody      bool
+	focusedIndex int
+	width        int
+	height       int
+}
+
 func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p.path[param.Name] }
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
@@ -31,12 +53,6 @@ func CollectParams(ep request.Endpoint) (PrefilledProvider, error) {
 	}
 	fm := final.(paramFormModel)
 	return fm.toProvider(), nil
-}
-
-type TUIInput struct {
-	Endpoint  request.Endpoint
-	collected bool
-	provider  PrefilledProvider
 }
 
 func (c *TUIInput) ensureCollected() {
@@ -62,22 +78,6 @@ func (c *TUIInput) GetQueryParam(p spec.Parameter) string {
 func (c *TUIInput) GetRequestBody() string {
 	c.ensureCollected()
 	return c.provider.GetRequestBody()
-}
-
-type paramField struct {
-	p     spec.Parameter
-	input textinput.Model
-}
-
-type paramFormModel struct {
-	ep           request.Endpoint
-	pathFields   []paramField
-	queryFields  []paramField
-	bodyArea     textarea.Model
-	hasBody      bool
-	focusedIndex int
-	width        int
-	height       int
 }
 
 func newParamFormModel(ep request.Endpoint) paramFormModel {
@@ -121,7 +121,9 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 	return m
 }
 
-func (m paramFormModel) Init() tea.Cmd { return nil }
+func (m paramFormModel) Init() tea.Cmd {
+	return nil
+}
 
 func (m paramFormModel) View() string {
 	title := lipgloss.NewStyle().Bold(true).Foreground(theme.Primary).Render("Parameters")
