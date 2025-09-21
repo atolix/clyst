@@ -12,14 +12,6 @@ func DiscoverSpecFiles(root string, patterns []string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
-			name := d.Name()
-			switch name {
-			case ".git", ".hg", ".svn", "node_modules", "vendor", ".venv":
-				return fs.SkipDir
-			}
-			return nil
-		}
 
 		rel, _ := filepath.Rel(root, path)
 		base := filepath.Base(path)
@@ -47,17 +39,19 @@ func DiscoverSpecFiles(root string, patterns []string) ([]string, error) {
 		}
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	return dedupe(matches), nil
+
+	return distinct(matches), nil
 }
 
 func hasGlob(s string) bool {
 	return strings.ContainsAny(s, "*?[")
 }
 
-func dedupe(in []string) []string {
+func distinct(in []string) []string {
 	m := make(map[string]struct{}, len(in))
 	out := make([]string, 0, len(in))
 	for _, v := range in {
