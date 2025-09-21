@@ -33,11 +33,11 @@ spec_files:
   - docs/**/*.yaml
 ```
 
-3) Make sure your spec provides a base URL (Clyst reads `base_url`):
+3) Make sure your spec provides a base URL (Clyst reads `baseUrl`):
 
 ```yaml
 openapi: 3.0.0
-base_url: https://api.example.com
+baseUrl: https://api.example.com
 paths:
   /users/{id}:
     get:
