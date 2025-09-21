@@ -174,7 +174,7 @@ func (m paramFormModel) View() string {
 	if len(sections) > 0 {
 		sections = append(sections, "")
 	}
-	sections = append(sections, lipgloss.NewStyle().Faint(true).Render("Tab/Shift+Tab: move  Enter: submit (Bodyでは改行)  Esc: cancel"))
+	sections = append(sections, lipgloss.NewStyle().Faint(true).Render("Tab/Shift+Tab: move  Enter: submit (Bodyでは改行) Ctrl+s: submit Esc: cancel"))
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
