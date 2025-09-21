@@ -121,7 +121,9 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 	return m
 }
 
-func (m paramFormModel) Init() tea.Cmd { return nil }
+func (m paramFormModel) Init() tea.Cmd {
+	return nil
+}
 
 func (m paramFormModel) View() string {
 	title := lipgloss.NewStyle().Bold(true).Foreground(theme.Primary).Render("Parameters")
