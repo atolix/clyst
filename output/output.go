@@ -34,10 +34,10 @@ func defaultStyles() styles {
 func Render(result request.ResultInfo) string {
 	s := defaultStyles()
 	reqBox := renderRequestBox(result, s)
-	bodyStr, lexer := prepareResponseBody(result)
+	bodyStr, lexer := laxerResponseBody(result)
 	headers := renderHeaders(result, s)
 	respBox := renderResponseBox(result, headers, bodyStr, lexer, s)
-	return layout(reqBox, respBox)
+	return lipgloss.JoinVertical(lipgloss.Left, reqBox, "\n", respBox)
 }
 
 func renderRequestBox(result request.ResultInfo, s styles) string {
@@ -60,7 +60,7 @@ func renderRequestBox(result request.ResultInfo, s styles) string {
 	return s.title.Render("Request") + "\n" + s.box.Render(strings.Join(lines, "\n"))
 }
 
-func prepareResponseBody(result request.ResultInfo) (string, string) {
+func laxerResponseBody(result request.ResultInfo) (string, string) {
 	if result.Response.JSONBody != nil {
 		if enc, err := json.MarshalIndent(result.Response.JSONBody, "", "  "); err == nil {
 			return string(enc), "json"
@@ -108,10 +108,6 @@ func renderResponseBox(result request.ResultInfo, headersSection, bodyStr, lexer
 	}
 	content += "\n" + s.label.Render("Body:") + "\n" + s.codeBox.Render(bodyBuf.String())
 	return s.title.Render("Response") + "\n" + s.box.Render(content)
-}
-
-func layout(reqBox, respBox string) string {
-	return lipgloss.JoinVertical(lipgloss.Left, reqBox, "\n", respBox)
 }
 
 func httpStatusText(status string) string {
