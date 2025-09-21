@@ -105,7 +105,8 @@ func main() {
 
 		baseURL := specDoc.BaseURL
 		if strings.TrimSpace(baseURL) == "" {
-			baseURL = "https://jsonplaceholder.typicode.com"
+			fmt.Println("Not found BaseURL")
+			os.Exit(1)
 		}
 
 		input, canceled, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
