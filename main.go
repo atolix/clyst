@@ -24,6 +24,7 @@ func main() {
 		os.Exit(1)
 	}
 
+Outer:
 	for {
 		found, err := spec.DiscoverSpecFiles(".", names)
 		if err != nil {
@@ -86,49 +87,55 @@ func main() {
 			items = append(items, ep)
 		}
 
-		runRes, err := tui.Run(items)
-		if err != nil {
-			panic(err)
-		}
+	EndpointLoop:
+		for {
+			runRes, err := tui.Run(items)
+			if err != nil {
+				panic(err)
+			}
 
-		if runRes.SwitchSpecSelect {
-			continue
-		}
+			if runRes.SwitchSpecSelect {
+				continue Outer
+			}
 
-		ep := request.Endpoint{
-			Method:    runRes.Selected.Method,
-			Path:      runRes.Selected.Path,
-			Operation: runRes.Selected.Operation,
-		}
+			ep := request.Endpoint{
+				Method:    runRes.Selected.Method,
+				Path:      runRes.Selected.Path,
+				Operation: runRes.Selected.Operation,
+			}
 
-		baseURL := specDoc.BaseURL
-		if strings.TrimSpace(baseURL) == "" {
-			fmt.Println("Not found BaseURL")
-			os.Exit(1)
-		}
+			baseURL := specDoc.BaseURL
+			if strings.TrimSpace(baseURL) == "" {
+				fmt.Println("Not found BaseURL")
+				os.Exit(1)
+			}
 
-		tuiInput := &tui.TUIInput{Endpoint: ep}
-		input, canceled, err := request.AssembleInput(baseURL, ep, tuiInput)
-		if err != nil {
-			panic(err)
-		}
+			tuiInput := &tui.TUIInput{Endpoint: ep}
+			input, canceled, err := request.AssembleInput(baseURL, ep, tuiInput)
+			if err != nil {
+				panic(err)
+			}
 
-		if canceled {
+			if canceled {
+				if tuiInput.BackRequested() {
+					continue EndpointLoop
+				}
+				return
+			}
+
+			result, err := request.Send(ep, input)
+			if err != nil {
+				panic(err)
+			}
+
+			if tuiInput.ShouldRecord() {
+				if err := request.SavePreset(".", ep, tuiInput); err != nil {
+					fmt.Println("failed to save params:", err)
+				}
+			}
+
+			fmt.Println(output.Render(result))
 			return
 		}
-
-		result, err := request.Send(ep, input)
-		if err != nil {
-			panic(err)
-		}
-
-		if tuiInput.ShouldRecord() {
-			if err := request.SavePreset(".", ep, tuiInput); err != nil {
-				fmt.Println("failed to save params:", err)
-			}
-		}
-
-		fmt.Println(output.Render(result))
-		return
 	}
 }

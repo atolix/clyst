@@ -20,6 +20,7 @@ type PrefilledProvider struct {
 	query     map[string]string
 	body      string
 	recording bool
+	back      bool
 }
 
 type TUIInput struct {
@@ -51,15 +52,18 @@ func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
 func (p PrefilledProvider) ShouldRecord() bool                        { return p.recording }
+func (p PrefilledProvider) BackRequested() bool                       { return p.back }
 
 func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
 	var initial PrefilledProvider
 
 	if store, err := params.Load("."); err == nil {
 		if presets := store.PresetsFor(ep.Method, ep.Path); len(presets) > 0 {
-			selected, canceled, err := SelectPreset(ep, presets)
+			selected, back, canceled, err := SelectPreset(ep, presets)
 			if err != nil {
 				fmt.Println("failed to select preset:", err)
+			} else if back {
+				return PrefilledProvider{back: true}, true, nil
 			} else if canceled {
 				return PrefilledProvider{}, true, nil
 			} else if selected != nil {
@@ -110,6 +114,11 @@ func (c *TUIInput) GetRequestBody() string {
 func (c *TUIInput) ShouldRecord() bool {
 	c.ensureCollected()
 	return c.provider.ShouldRecord()
+}
+
+func (c *TUIInput) BackRequested() bool {
+	c.ensureCollected()
+	return c.provider.BackRequested()
 }
 
 func (c *TUIInput) Canceled() bool {
@@ -402,5 +411,6 @@ func (m paramFormModel) toProvider() PrefilledProvider {
 		query:     queryVals,
 		body:      m.bodyArea.Value(),
 		recording: m.recording,
+		back:      false,
 	}
 }

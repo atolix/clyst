@@ -29,6 +29,7 @@ type presetModel struct {
 	list     list.Model
 	selected int
 	canceled bool
+	back     bool
 }
 
 func newPresetModel(ep request.Endpoint, presets []params.StoredParams) presetModel {
@@ -49,7 +50,7 @@ func newPresetModel(ep request.Endpoint, presets []params.StoredParams) presetMo
 
 	const defaultWidth = 60
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 20)
-	l.Title = fmt.Sprintf("Saved presets: %s %s (Esc to cancel)", strings.ToUpper(ep.Method), ep.Path)
+	l.Title = fmt.Sprintf("Saved presets: %s %s (Esc: cancel, Ctrl+b: back)", strings.ToUpper(ep.Method), ep.Path)
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
@@ -63,6 +64,9 @@ func (m presetModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "ctrl+b":
+			m.back = true
+			return m, tea.Quit
 		case "enter":
 			if item, ok := m.list.SelectedItem().(presetItem); ok {
 				m.selected = item.index
@@ -89,6 +93,9 @@ func (m presetModel) View() string {
 }
 
 func presetTitle(p params.StoredParams) string {
+	if p.RecordedAt.IsZero() {
+		return "Saved preset"
+	}
 	return p.RecordedAt.Local().Format(time.DateTime)
 }
 
@@ -125,23 +132,25 @@ func joinPairs(m map[string]string) string {
 	return strings.Join(out, ", ")
 }
 
-// SelectPreset は保存済みデータから利用するものを選ばせる。
-func SelectPreset(ep request.Endpoint, presets []params.StoredParams) (*params.StoredParams, bool, error) {
+func SelectPreset(ep request.Endpoint, presets []params.StoredParams) (*params.StoredParams, bool, bool, error) {
 	if len(presets) == 0 {
-		return nil, false, nil
+		return nil, false, false, nil
 	}
 
 	model := newPresetModel(ep, presets)
 	final, err := tea.NewProgram(model).Run()
 	if err != nil {
-		return nil, false, err
+		return nil, false, false, err
 	}
 	res := final.(presetModel)
 	if res.canceled {
-		return nil, true, nil
+		return nil, false, true, nil
+	}
+	if res.back {
+		return nil, true, false, nil
 	}
 	if res.selected == 0 {
-		return nil, false, nil
+		return nil, false, false, nil
 	}
-	return &presets[res.selected-1], false, nil
+	return &presets[res.selected-1], false, false, nil
 }

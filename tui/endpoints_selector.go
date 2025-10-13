@@ -69,7 +69,7 @@ func NewStyleDelegate() list.DefaultDelegate {
 func NewEndpointsSelectorModel(items []list.Item) Model {
 	const defaultWidth = 50
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
-	l.Title = "Api Endpoints  (press 'b' to back to spec selection)"
+	l.Title = "Api Endpoints  (press 'Ctrl+b' to back to spec selection)"
 	l.SetShowStatusBar(false)
 
 	return Model{list: l}
@@ -92,7 +92,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Selected = &i
 				return m, tea.Quit
 			}
-		case "b":
+		case "ctrl+b":
 			m.SwitchSpecSelect = true
 			return m, tea.Quit
 		}
