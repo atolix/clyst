@@ -107,7 +107,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		input, canceled, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
+		tuiInput := &tui.TUIInput{Endpoint: ep}
+		input, canceled, err := request.AssembleInput(baseURL, ep, tuiInput)
 		if err != nil {
 			panic(err)
 		}
@@ -119,6 +120,12 @@ func main() {
 		result, err := request.Send(ep, input)
 		if err != nil {
 			panic(err)
+		}
+
+		if tuiInput.ShouldRecord() {
+			if err := request.SavePreset(".", ep, tuiInput); err != nil {
+				fmt.Println("failed to save params:", err)
+			}
 		}
 
 		fmt.Println(output.Render(result))

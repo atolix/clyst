@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/atolix/clyst/params"
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/theme"
@@ -52,7 +53,20 @@ func (p PrefilledProvider) GetRequestBody() string                    { return p
 func (p PrefilledProvider) ShouldRecord() bool                        { return p.recording }
 
 func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
-	m := newParamFormModel(ep)
+	var initial PrefilledProvider
+
+	if store, err := params.Load("."); err == nil {
+		if presets := store.PresetsFor(ep.Method, ep.Path); len(presets) > 0 {
+			last := presets[len(presets)-1]
+			initial.path = last.Path
+			initial.query = last.Query
+			initial.body = last.Body
+		}
+	} else {
+		fmt.Println("failed to read saved params:", err)
+	}
+
+	m := newParamFormModel(ep, initial)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return PrefilledProvider{}, false, err
@@ -96,7 +110,7 @@ func (c *TUIInput) Canceled() bool {
 	return c.canceled
 }
 
-func newParamFormModel(ep request.Endpoint) paramFormModel {
+func newParamFormModel(ep request.Endpoint, initial PrefilledProvider) paramFormModel {
 	var pathFields []paramField
 	var queryFields []paramField
 	for _, p := range ep.Operation.Parameters {
@@ -105,8 +119,18 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 		ti.Placeholder = fmt.Sprintf("%s (%s)", p.Name, p.Schema.Type)
 		switch p.In {
 		case "path":
+			if initial.path != nil {
+				if v, ok := initial.path[p.Name]; ok {
+					ti.SetValue(v)
+				}
+			}
 			pathFields = append(pathFields, paramField{p: p, input: ti})
 		case "query":
+			if initial.query != nil {
+				if v, ok := initial.query[p.Name]; ok {
+					ti.SetValue(v)
+				}
+			}
 			queryFields = append(queryFields, paramField{p: p, input: ti})
 		}
 	}
@@ -115,6 +139,9 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 	ta.Placeholder = "{\n  \"example\": \"value\"\n}"
 	ta.ShowLineNumbers = false
 	ta.MaxWidth = 0
+	if strings.TrimSpace(initial.body) != "" {
+		ta.SetValue(initial.body)
+	}
 	hasBody := ep.Operation.RequestBody != nil
 
 	m := paramFormModel{
