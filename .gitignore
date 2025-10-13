@@ -1,0 +1,9 @@
+# Build artifacts
+dist/
+
+# Local presets / configs
+.clyst_params
+.clyst.yml
+
+# OS/editor noise
+.DS_Store
