@@ -1,4 +1,4 @@
-package tui
+package selector
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ type presetModel struct {
 	list     list.Model
 	selected int
 	canceled bool
-	back     bool
+	reselect bool
 }
 
 func newPresetModel(ep request.Endpoint, presets []params.StoredParams) presetModel {
@@ -65,7 +65,7 @@ func (m presetModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+b":
-			m.back = true
+			m.reselect = true
 			return m, tea.Quit
 		case "enter":
 			if item, ok := m.list.SelectedItem().(presetItem); ok {
@@ -146,7 +146,7 @@ func SelectPreset(ep request.Endpoint, presets []params.StoredParams) (*params.S
 	if res.canceled {
 		return nil, false, true, nil
 	}
-	if res.back {
+	if res.reselect {
 		return nil, true, false, nil
 	}
 	if res.selected == 0 {

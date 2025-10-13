@@ -12,6 +12,7 @@ import (
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/tui"
+	"github.com/atolix/clyst/tui/selector"
 
 	"github.com/charmbracelet/bubbles/list"
 )
@@ -38,15 +39,15 @@ Outer:
 
 		specPath := found[0]
 		if len(found) > 1 {
-			var opts []tui.SpecItem
+			var opts []selector.SpecItem
 			for _, p := range found {
-				opts = append(opts, tui.SpecItem{
+				opts = append(opts, selector.SpecItem{
 					TitleText: p,
 					DescText:  filepath.Dir(p),
 					Value:     p,
 				})
 			}
-			selected, err := tui.SelectSpec("Select an OpenAPI spec", opts)
+			selected, err := selector.SelectSpec("Select an OpenAPI spec", opts)
 			if err != nil {
 				fmt.Println("TUI running error:", err)
 				os.Exit(1)
@@ -64,10 +65,10 @@ Outer:
 			panic(err)
 		}
 
-		var endpoints []tui.EndpointItem
+		var endpoints []selector.EndpointItem
 		for path, methods := range specDoc.Paths {
 			for method, op := range methods {
-				endpoints = append(endpoints, tui.EndpointItem{
+				endpoints = append(endpoints, selector.EndpointItem{
 					Method:    method,
 					Path:      path,
 					Operation: op,
@@ -89,7 +90,7 @@ Outer:
 
 	EndpointLoop:
 		for {
-			runRes, err := tui.Run(items)
+			runRes, err := selector.RunEndpoints(items)
 			if err != nil {
 				panic(err)
 			}
@@ -117,7 +118,7 @@ Outer:
 			}
 
 			if canceled {
-				if tuiInput.BackRequested() {
+				if tuiInput.ShouldReselectEndpoint() {
 					continue EndpointLoop
 				}
 				return

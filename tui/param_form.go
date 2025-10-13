@@ -8,6 +8,7 @@ import (
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/theme"
+	"github.com/atolix/clyst/tui/selector"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -20,7 +21,7 @@ type PrefilledProvider struct {
 	query     map[string]string
 	body      string
 	recording bool
-	back      bool
+	reselect  bool
 }
 
 type TUIInput struct {
@@ -52,18 +53,18 @@ func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
 func (p PrefilledProvider) ShouldRecord() bool                        { return p.recording }
-func (p PrefilledProvider) BackRequested() bool                       { return p.back }
+func (p PrefilledProvider) ShouldReselectEndpoint() bool              { return p.reselect }
 
 func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
 	var initial PrefilledProvider
 
 	if store, err := params.Load("."); err == nil {
 		if presets := store.PresetsFor(ep.Method, ep.Path); len(presets) > 0 {
-			selected, back, canceled, err := SelectPreset(ep, presets)
+			selected, reselect, canceled, err := selector.SelectPreset(ep, presets)
 			if err != nil {
 				fmt.Println("failed to select preset:", err)
-			} else if back {
-				return PrefilledProvider{back: true}, true, nil
+			} else if reselect {
+				return PrefilledProvider{reselect: true}, true, nil
 			} else if canceled {
 				return PrefilledProvider{}, true, nil
 			} else if selected != nil {
@@ -116,9 +117,9 @@ func (c *TUIInput) ShouldRecord() bool {
 	return c.provider.ShouldRecord()
 }
 
-func (c *TUIInput) BackRequested() bool {
+func (c *TUIInput) ShouldReselectEndpoint() bool {
 	c.ensureCollected()
-	return c.provider.BackRequested()
+	return c.provider.ShouldReselectEndpoint()
 }
 
 func (c *TUIInput) Canceled() bool {
@@ -411,6 +412,6 @@ func (m paramFormModel) toProvider() PrefilledProvider {
 		query:     queryVals,
 		body:      m.bodyArea.Value(),
 		recording: m.recording,
-		back:      false,
+		reselect:  false,
 	}
 }
