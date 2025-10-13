@@ -7,14 +7,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const defaultFilename = ".clyst_params"
 
 type StoredParams struct {
-	Path  map[string]string `json:"path,omitempty"`
-	Query map[string]string `json:"query,omitempty"`
-	Body  string            `json:"body,omitempty"`
+	Path       map[string]string `json:"path,omitempty"`
+	Query      map[string]string `json:"query,omitempty"`
+	Body       string            `json:"body,omitempty"`
+	RecordedAt time.Time         `json:"recorded_at,omitempty"`
 }
 
 type Store struct {
@@ -54,9 +56,10 @@ func (s *Store) PresetsFor(method, path string) []StoredParams {
 	out := make([]StoredParams, 0, len(items))
 	for _, item := range items {
 		out = append(out, StoredParams{
-			Path:  cloneMap(item.Path),
-			Query: cloneMap(item.Query),
-			Body:  item.Body,
+			Path:       cloneMap(item.Path),
+			Query:      cloneMap(item.Query),
+			Body:       item.Body,
+			RecordedAt: item.RecordedAt,
 		})
 	}
 	return out
@@ -69,6 +72,7 @@ func (s *Store) AppendPreset(method, path string, preset StoredParams) error {
 	key := keyOf(method, path)
 	preset.Path = cloneMap(preset.Path)
 	preset.Query = cloneMap(preset.Query)
+	preset.RecordedAt = time.Now()
 	s.data[key] = append(s.data[key], preset)
 	return s.persist()
 }

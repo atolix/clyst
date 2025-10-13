@@ -57,10 +57,16 @@ func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
 
 	if store, err := params.Load("."); err == nil {
 		if presets := store.PresetsFor(ep.Method, ep.Path); len(presets) > 0 {
-			last := presets[len(presets)-1]
-			initial.path = last.Path
-			initial.query = last.Query
-			initial.body = last.Body
+			selected, canceled, err := SelectPreset(ep, presets)
+			if err != nil {
+				fmt.Println("failed to select preset:", err)
+			} else if canceled {
+				return PrefilledProvider{}, true, nil
+			} else if selected != nil {
+				initial.path = selected.Path
+				initial.query = selected.Query
+				initial.body = selected.Body
+			}
 		}
 	} else {
 		fmt.Println("failed to read saved params:", err)
