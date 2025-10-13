@@ -1,4 +1,4 @@
-package tui
+package selector
 
 import (
 	"bytes"
@@ -25,61 +25,31 @@ func (i EndpointItem) Title() string       { return fmt.Sprintf("%s %s", strings
 func (i EndpointItem) Description() string { return i.Operation.Summary }
 func (i EndpointItem) FilterValue() string { return i.Path }
 
-type Model struct {
+type endpointModel struct {
 	list             list.Model
-	Selected         *EndpointItem
-	result           string
+	selected         *EndpointItem
 	width            int
 	height           int
-	SwitchSpecSelect bool
+	switchSpecSelect bool
 }
 
-type RunResult struct {
+type EndpointResult struct {
 	Selected         *EndpointItem
 	SwitchSpecSelect bool
 }
 
-func NewStyleDelegate() list.DefaultDelegate {
-	d := list.NewDefaultDelegate()
-
-	d.Styles.NormalTitle = d.Styles.NormalTitle.PaddingLeft(2)
-
-	d.Styles.NormalDesc = d.Styles.NormalDesc.PaddingLeft(2)
-
-	d.Styles.SelectedTitle = lipgloss.NewStyle().
-		Foreground(theme.Primary).
-		MarginLeft(0).
-		PaddingLeft(2).
-		BorderLeft(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(theme.Border).
-		Bold(true)
-
-	d.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(theme.Primary).
-		MarginLeft(0).
-		PaddingLeft(2).
-		BorderLeft(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderForeground(theme.Border)
-
-	return d
-}
-
-func NewEndpointsSelectorModel(items []list.Item) Model {
+func newEndpointsModel(items []list.Item) endpointModel {
 	const defaultWidth = 50
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 40)
-	l.Title = "Api Endpoints  (press 'b' to back to spec selection)"
+	l.Title = "Api Endpoints  (press 'Ctrl+b' to back to spec selection)"
 	l.SetShowStatusBar(false)
 
-	return Model{list: l}
+	return endpointModel{list: l}
 }
 
-func (m Model) Init() tea.Cmd {
-	return nil
-}
+func (m endpointModel) Init() tea.Cmd { return nil }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m endpointModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -89,11 +59,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			if i, ok := m.list.SelectedItem().(EndpointItem); ok {
-				m.Selected = &i
+				m.selected = &i
 				return m, tea.Quit
 			}
-		case "b":
-			m.SwitchSpecSelect = true
+		case "ctrl+b":
+			m.switchSpecSelect = true
 			return m, tea.Quit
 		}
 	}
@@ -104,19 +74,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m endpointModel) View() string {
 	listWidth := m.width / 3
 	detailWidth := m.width / 3
 	height := m.height / 3
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, ListView(m, listWidth, height), DetailBox(m, detailWidth, height))
+	return lipgloss.JoinHorizontal(lipgloss.Top, listView(m, listWidth, height), detailBox(m, detailWidth, height))
 }
 
-func ListView(m Model, width int, height int) string {
+func listView(m endpointModel, width int, height int) string {
 	return lipgloss.NewStyle().Width(width).Height(height).Render(m.list.View())
 }
 
-func DetailBox(m Model, width int, height int) string {
+func detailBox(m endpointModel, width int, height int) string {
 	var detail string
 	if i, ok := m.list.SelectedItem().(EndpointItem); ok {
 		parsed, err := json.MarshalIndent(i.Operation, "", "  ")
@@ -140,14 +110,14 @@ func DetailBox(m Model, width int, height int) string {
 		Render(detail)
 }
 
-func Run(items []list.Item) (RunResult, error) {
-	m := NewEndpointsSelectorModel(items)
+func RunEndpoints(items []list.Item) (EndpointResult, error) {
+	m := newEndpointsModel(items)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
-		return RunResult{}, err
+		return EndpointResult{}, err
 	}
 
-	fm := final.(Model)
+	fm := final.(endpointModel)
 
-	return RunResult{Selected: fm.Selected, SwitchSpecSelect: fm.SwitchSpecSelect}, nil
+	return EndpointResult{Selected: fm.selected, SwitchSpecSelect: fm.switchSpecSelect}, nil
 }

@@ -8,4 +8,5 @@ var (
 	Text       = lipgloss.Color("#e6e6e6") // primary text
 	Border     = lipgloss.Color("#6495ed") // standard borders
 	CodeBorder = lipgloss.Color("#5f87af") // code block borders
+	DarkText   = lipgloss.Color("#121826") // readable text on bright backgrounds
 )

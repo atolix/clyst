@@ -1,4 +1,4 @@
-package tui
+package selector
 
 import (
 	"fmt"
@@ -17,30 +17,30 @@ func (i SpecItem) Title() string       { return i.TitleText }
 func (i SpecItem) Description() string { return i.DescText }
 func (i SpecItem) FilterValue() string { return i.TitleText }
 
-type selectSpecModel struct {
+type specModel struct {
 	list     list.Model
-	Selected *SpecItem
+	selected *SpecItem
 }
 
-func newSpecSelectorModel(title string, items []list.Item) selectSpecModel {
+func newSpecModel(title string, items []list.Item) specModel {
 	const defaultWidth = 60
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 20)
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
 
-	return selectSpecModel{list: l}
+	return specModel{list: l}
 }
 
-func (m selectSpecModel) Init() tea.Cmd { return nil }
+func (m specModel) Init() tea.Cmd { return nil }
 
-func (m selectSpecModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m specModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
 			if i, ok := m.list.SelectedItem().(SpecItem); ok {
-				m.Selected = &i
+				m.selected = &i
 				return m, tea.Quit
 			}
 		}
@@ -51,7 +51,7 @@ func (m selectSpecModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m selectSpecModel) View() string { return m.list.View() }
+func (m specModel) View() string { return m.list.View() }
 
 func SelectSpec(title string, options []SpecItem) (string, error) {
 	if len(options) == 0 {
@@ -63,16 +63,16 @@ func SelectSpec(title string, options []SpecItem) (string, error) {
 		items = append(items, o)
 	}
 
-	m := newSpecSelectorModel(title, items)
+	m := newSpecModel(title, items)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return "", err
 	}
 
-	fm := final.(selectSpecModel)
-	if fm.Selected == nil {
+	fm := final.(specModel)
+	if fm.selected == nil {
 		return "", nil
 	}
 
-	return fm.Selected.Value, nil
+	return fm.selected.Value, nil
 }

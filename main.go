@@ -12,6 +12,7 @@ import (
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/tui"
+	"github.com/atolix/clyst/tui/selector"
 
 	"github.com/charmbracelet/bubbles/list"
 )
@@ -24,6 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
+Outer:
 	for {
 		found, err := spec.DiscoverSpecFiles(".", names)
 		if err != nil {
@@ -37,15 +39,15 @@ func main() {
 
 		specPath := found[0]
 		if len(found) > 1 {
-			var opts []tui.SpecItem
+			var opts []selector.SpecItem
 			for _, p := range found {
-				opts = append(opts, tui.SpecItem{
+				opts = append(opts, selector.SpecItem{
 					TitleText: p,
 					DescText:  filepath.Dir(p),
 					Value:     p,
 				})
 			}
-			selected, err := tui.SelectSpec("Select an OpenAPI spec", opts)
+			selected, err := selector.SelectSpec("Select an OpenAPI spec", opts)
 			if err != nil {
 				fmt.Println("TUI running error:", err)
 				os.Exit(1)
@@ -63,10 +65,10 @@ func main() {
 			panic(err)
 		}
 
-		var endpoints []tui.EndpointItem
+		var endpoints []selector.EndpointItem
 		for path, methods := range specDoc.Paths {
 			for method, op := range methods {
-				endpoints = append(endpoints, tui.EndpointItem{
+				endpoints = append(endpoints, selector.EndpointItem{
 					Method:    method,
 					Path:      path,
 					Operation: op,
@@ -86,42 +88,55 @@ func main() {
 			items = append(items, ep)
 		}
 
-		runRes, err := tui.Run(items)
-		if err != nil {
-			panic(err)
-		}
+	EndpointLoop:
+		for {
+			runRes, err := selector.RunEndpoints(items)
+			if err != nil {
+				panic(err)
+			}
 
-		if runRes.SwitchSpecSelect {
-			continue
-		}
+			if runRes.SwitchSpecSelect {
+				continue Outer
+			}
 
-		ep := request.Endpoint{
-			Method:    runRes.Selected.Method,
-			Path:      runRes.Selected.Path,
-			Operation: runRes.Selected.Operation,
-		}
+			ep := request.Endpoint{
+				Method:    runRes.Selected.Method,
+				Path:      runRes.Selected.Path,
+				Operation: runRes.Selected.Operation,
+			}
 
-		baseURL := specDoc.BaseURL
-		if strings.TrimSpace(baseURL) == "" {
-			fmt.Println("Not found BaseURL")
-			os.Exit(1)
-		}
+			baseURL := specDoc.BaseURL
+			if strings.TrimSpace(baseURL) == "" {
+				fmt.Println("Not found BaseURL")
+				os.Exit(1)
+			}
 
-		input, canceled, err := request.AssembleInput(baseURL, ep, &tui.TUIInput{Endpoint: ep})
-		if err != nil {
-			panic(err)
-		}
+			tuiInput := &tui.TUIInput{Endpoint: ep}
+			input, canceled, err := request.AssembleInput(baseURL, ep, tuiInput)
+			if err != nil {
+				panic(err)
+			}
 
-		if canceled {
+			if canceled {
+				if tuiInput.ShouldReselectEndpoint() {
+					continue EndpointLoop
+				}
+				return
+			}
+
+			result, err := request.Send(ep, input)
+			if err != nil {
+				panic(err)
+			}
+
+			if tuiInput.ShouldRecord() {
+				if err := request.SavePreset(".", ep, tuiInput); err != nil {
+					fmt.Println("failed to save params:", err)
+				}
+			}
+
+			fmt.Println(output.Render(result))
 			return
 		}
-
-		result, err := request.Send(ep, input)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(output.Render(result))
-		return
 	}
 }

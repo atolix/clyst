@@ -2,10 +2,13 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/atolix/clyst/params"
 	"github.com/atolix/clyst/request"
 	"github.com/atolix/clyst/spec"
 	"github.com/atolix/clyst/theme"
+	"github.com/atolix/clyst/tui/selector"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -14,9 +17,11 @@ import (
 )
 
 type PrefilledProvider struct {
-	path  map[string]string
-	query map[string]string
-	body  string
+	path      map[string]string
+	query     map[string]string
+	body      string
+	recording bool
+	reselect  bool
 }
 
 type TUIInput struct {
@@ -41,14 +46,38 @@ type paramFormModel struct {
 	width        int
 	height       int
 	canceled     bool
+	recording    bool
 }
 
 func (p PrefilledProvider) GetPathParam(param spec.Parameter) string  { return p.path[param.Name] }
 func (p PrefilledProvider) GetQueryParam(param spec.Parameter) string { return p.query[param.Name] }
 func (p PrefilledProvider) GetRequestBody() string                    { return p.body }
+func (p PrefilledProvider) ShouldRecord() bool                        { return p.recording }
+func (p PrefilledProvider) ShouldReselectEndpoint() bool              { return p.reselect }
 
 func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
-	m := newParamFormModel(ep)
+	var initial PrefilledProvider
+
+	if store, err := params.Load("."); err == nil {
+		if presets := store.PresetsFor(ep.Method, ep.Path); len(presets) > 0 {
+			selected, reselect, canceled, err := selector.SelectPreset(ep, presets)
+			if err != nil {
+				fmt.Println("failed to select preset:", err)
+			} else if reselect {
+				return PrefilledProvider{reselect: true}, true, nil
+			} else if canceled {
+				return PrefilledProvider{}, true, nil
+			} else if selected != nil {
+				initial.path = selected.Path
+				initial.query = selected.Query
+				initial.body = selected.Body
+			}
+		}
+	} else {
+		fmt.Println("failed to read saved params:", err)
+	}
+
+	m := newParamFormModel(ep, initial)
 	final, err := tea.NewProgram(m).Run()
 	if err != nil {
 		return PrefilledProvider{}, false, err
@@ -83,11 +112,21 @@ func (c *TUIInput) GetRequestBody() string {
 	return c.provider.GetRequestBody()
 }
 
+func (c *TUIInput) ShouldRecord() bool {
+	c.ensureCollected()
+	return c.provider.ShouldRecord()
+}
+
+func (c *TUIInput) ShouldReselectEndpoint() bool {
+	c.ensureCollected()
+	return c.provider.ShouldReselectEndpoint()
+}
+
 func (c *TUIInput) Canceled() bool {
 	return c.canceled
 }
 
-func newParamFormModel(ep request.Endpoint) paramFormModel {
+func newParamFormModel(ep request.Endpoint, initial PrefilledProvider) paramFormModel {
 	var pathFields []paramField
 	var queryFields []paramField
 	for _, p := range ep.Operation.Parameters {
@@ -96,8 +135,18 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 		ti.Placeholder = fmt.Sprintf("%s (%s)", p.Name, p.Schema.Type)
 		switch p.In {
 		case "path":
+			if initial.path != nil {
+				if v, ok := initial.path[p.Name]; ok {
+					ti.SetValue(v)
+				}
+			}
 			pathFields = append(pathFields, paramField{p: p, input: ti})
 		case "query":
+			if initial.query != nil {
+				if v, ok := initial.query[p.Name]; ok {
+					ti.SetValue(v)
+				}
+			}
 			queryFields = append(queryFields, paramField{p: p, input: ti})
 		}
 	}
@@ -106,6 +155,9 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 	ta.Placeholder = "{\n  \"example\": \"value\"\n}"
 	ta.ShowLineNumbers = false
 	ta.MaxWidth = 0
+	if strings.TrimSpace(initial.body) != "" {
+		ta.SetValue(initial.body)
+	}
 	hasBody := ep.Operation.RequestBody != nil
 
 	m := paramFormModel{
@@ -115,6 +167,7 @@ func newParamFormModel(ep request.Endpoint) paramFormModel {
 		bodyArea:     ta,
 		hasBody:      hasBody,
 		focusedIndex: 0,
+		recording:    false,
 	}
 
 	if len(m.pathFields) > 0 {
@@ -137,8 +190,36 @@ func (m paramFormModel) View() string {
 	section := lipgloss.NewStyle().Bold(true)
 	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2)
 	outer := lipgloss.NewStyle().MarginBottom(2)
+	onStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(theme.DarkText).
+		Background(theme.Primary).
+		Padding(0, 1)
+	offStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(theme.Muted).
+		Background(lipgloss.Color("#2b2d3a")).
+		Padding(0, 1)
+	recordStatus := offStyle.Render("Recording OFF")
+	if m.recording {
+		recordStatus = onStyle.Render("Recording ON")
+	}
 
 	var sections []string
+	statusLines := []string{recordStatus}
+
+	sections = append(sections, lipgloss.JoinVertical(lipgloss.Left, statusLines...))
+	sections = append(sections, "")
+
+	hints := []string{
+		"Tab/Shift+Tab: move",
+		"Ctrl+r: toggle recording",
+		"Enter: submit (newline in Body)",
+		"Ctrl+s: submit",
+		"Esc: cancel",
+	}
+	sections = append(sections, lipgloss.NewStyle().Faint(true).Render(strings.Join(hints, "  ")))
+	sections = append(sections, "")
 
 	if len(m.pathFields) > 0 {
 		var pathViews []string
@@ -174,7 +255,6 @@ func (m paramFormModel) View() string {
 	if len(sections) > 0 {
 		sections = append(sections, "")
 	}
-	sections = append(sections, lipgloss.NewStyle().Faint(true).Render("Tab/Shift+Tab: move  Enter: submit (newline in Body) Ctrl+s: submit Esc: cancel"))
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
@@ -200,6 +280,9 @@ func (m paramFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+s":
 			return m, tea.Quit
+		case "ctrl+r":
+			m.recording = !m.recording
+			return m, nil
 		case "esc":
 			m.canceled = true
 			return m, tea.Quit
@@ -324,5 +407,11 @@ func (m paramFormModel) toProvider() PrefilledProvider {
 		queryVals[f.p.Name] = f.input.Value()
 	}
 
-	return PrefilledProvider{path: pathVals, query: queryVals, body: m.bodyArea.Value()}
+	return PrefilledProvider{
+		path:      pathVals,
+		query:     queryVals,
+		body:      m.bodyArea.Value(),
+		recording: m.recording,
+		reselect:  false,
+	}
 }
