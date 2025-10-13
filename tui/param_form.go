@@ -168,6 +168,16 @@ func (m paramFormModel) View() string {
 	sections = append(sections, lipgloss.JoinVertical(lipgloss.Left, statusLines...))
 	sections = append(sections, "")
 
+	hints := []string{
+		"Tab/Shift+Tab: move",
+		"Ctrl+r: toggle recording",
+		"Enter: submit (newline in Body)",
+		"Ctrl+s: submit",
+		"Esc: cancel",
+	}
+	sections = append(sections, lipgloss.NewStyle().Faint(true).Render(strings.Join(hints, "  ")))
+	sections = append(sections, "")
+
 	if len(m.pathFields) > 0 {
 		var pathViews []string
 		for _, f := range m.pathFields {
@@ -202,14 +212,6 @@ func (m paramFormModel) View() string {
 	if len(sections) > 0 {
 		sections = append(sections, "")
 	}
-	hints := []string{
-		"Tab/Shift+Tab: move",
-		"Ctrl+r: toggle recording",
-		"Enter: submit (newline in Body)",
-		"Ctrl+s: submit",
-		"Esc: cancel",
-	}
-	sections = append(sections, lipgloss.NewStyle().Faint(true).Render(strings.Join(hints, "  ")))
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
