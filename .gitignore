@@ -5,5 +5,7 @@ dist/
 .clyst_params
 .clyst.yml
 
+.gocache
+
 # OS/editor noise
 .DS_Store
