@@ -113,6 +113,28 @@ External files (`$ref: ./file.yml#/...`) and `$ref` inside schema objects are no
 - Ctrl+b: go back during preset selection
 - Esc: cancel
 
+## Flow Overview
+
+```mermaid
+flowchart TD
+    A[Start: run clyst] --> B{Multiple specs found?}
+    B -- Yes --> C[Spec selector]
+    B -- No --> D[Use discovered spec]
+    C --> D
+    D --> E[Endpoint selector]
+    E -- Enter --> F{Saved presets exist?}
+    E -- Ctrl+b --> C
+    F -- Yes --> G[Preset selector]
+    F -- No --> I[Parameter form]
+    G -- Ctrl+b --> E
+    G -- Esc --> H[Exit]
+    G -- Enter --> I
+    I[Parameter form]
+    I -- Esc --> H
+    I -- Submit --> J[Send request]
+    J --> K[Render response]
+```
+
 ## Limitations (Current)
 
 - Parameters: path and query are supported. Header and cookie parameters are ignored at request time.
