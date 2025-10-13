@@ -11,6 +11,7 @@ https://github.com/user-attachments/assets/5b95687c-94ad-4722-85f0-c50f64c6079c
 - Request/response viewer: sends the request and renders status, headers, and JSON body.
 - `$ref` support (local): resolves `#/components/parameters/*` and `#/components/requestBodies/*`.
 - Spec discovery: automatically finds a spec file in the current directory.
+- Parameter presets: record form inputs (Ctrl+R) and reuse them per endpoint.
 
 ## Installation
 
@@ -19,8 +20,11 @@ https://github.com/user-attachments/assets/5b95687c-94ad-4722-85f0-c50f64c6079c
 - From source:
   - `git clone https://github.com/atolix/clyst`
   - `cd clyst && go build -o clyst`
+- Pre-built binaries:
+  - `make build` → writes `dist/clyst` (or `.exe` on Windows)
+  - `make build-all` → writes per-platform archives under `dist/`
 
-Requires Go 1.21+.
+Requires Go 1.23+ to build from source.
 
 ## Quick Start
 
@@ -105,6 +109,8 @@ External files (`$ref: ./file.yml#/...`) and `$ref` inside schema objects are no
 - Tab/Shift+Tab: move
 - Enter: submit (newline in Body)
 - Ctrl+s: submit
+- Ctrl+r: toggle recording presets
+- Ctrl+b: go back during preset selection
 - Esc: cancel
 
 ## Limitations (Current)
@@ -118,6 +124,7 @@ External files (`$ref: ./file.yml#/...`) and `$ref` inside schema objects are no
 
 - Run locally: `go run .`
 - Build: `go build -o clyst`
+- Binary builds: `make build` or `make build-all`
 - Lint/format: use your preferred Go tools; no specific config is included.
 
 Project structure highlights:
@@ -133,4 +140,3 @@ Issues and PRs are welcome at https://github.com/atolix/clyst.
 ## License
 
 See `LICENSE` for details.
-
