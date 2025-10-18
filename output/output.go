@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/atolix/clyst/request"
@@ -29,6 +30,20 @@ func defaultStyles() styles {
 		box:     lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2),
 		codeBox: lipgloss.NewStyle().Border(lipgloss.NormalBorder()).BorderForeground(theme.CodeBorder).Padding(0, 1).MarginTop(0),
 	}
+}
+
+var basicResponseHeaders = []string{
+	"Content-Type",
+	"Content-Length",
+	"Content-Encoding",
+	"Content-Language",
+	"Cache-Control",
+	"ETag",
+	"Expires",
+	"Last-Modified",
+	"Location",
+	"Date",
+	"Server",
 }
 
 func Render(result request.ResultInfo) string {
@@ -84,8 +99,13 @@ func laxerResponseBody(result request.ResultInfo) (string, string) {
 
 func renderHeaders(result request.ResultInfo, s styles) string {
 	var lines []string
-	for k, v := range result.Response.Headers {
-		lines = append(lines, "  "+s.label.Render(k+":")+" "+s.value.Render(strings.Join(v, ", ")))
+	for _, key := range basicResponseHeaders {
+		canonical := http.CanonicalHeaderKey(key)
+		values, ok := result.Response.Headers[canonical]
+		if !ok || len(values) == 0 {
+			continue
+		}
+		lines = append(lines, "  "+s.label.Render(canonical+":")+" "+s.value.Render(strings.Join(values, ", ")))
 	}
 
 	return strings.Join(lines, "\n")
