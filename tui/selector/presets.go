@@ -138,7 +138,7 @@ func SelectPreset(ep request.Endpoint, presets []params.StoredParams) (*params.S
 	}
 
 	model := newPresetModel(ep, presets)
-	final, err := tea.NewProgram(model).Run()
+	final, err := tea.NewProgram(model, tea.WithAltScreen()).Run()
 	if err != nil {
 		return nil, false, false, err
 	}
