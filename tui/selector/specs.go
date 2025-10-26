@@ -64,7 +64,7 @@ func SelectSpec(title string, options []SpecItem) (string, error) {
 	}
 
 	m := newSpecModel(title, items)
-	final, err := tea.NewProgram(m).Run()
+	final, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
 		return "", err
 	}

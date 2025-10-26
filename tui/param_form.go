@@ -78,7 +78,7 @@ func CollectParams(ep request.Endpoint) (PrefilledProvider, bool, error) {
 	}
 
 	m := newParamFormModel(ep, initial)
-	final, err := tea.NewProgram(m).Run()
+	final, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
 		return PrefilledProvider{}, false, err
 	}

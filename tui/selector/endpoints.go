@@ -112,7 +112,7 @@ func detailBox(m endpointModel, width int, height int) string {
 
 func RunEndpoints(items []list.Item) (EndpointResult, error) {
 	m := newEndpointsModel(items)
-	final, err := tea.NewProgram(m).Run()
+	final, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
 	if err != nil {
 		return EndpointResult{}, err
 	}
