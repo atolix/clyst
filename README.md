@@ -2,8 +2,7 @@
 
 A small TUI (terminal UI) client for exploring an OpenAPI spec and sending HTTP requests. Point it at an OpenAPI 3 spec file, pick an endpoint, fill parameters/body in a form, and view the response — all from your terminal.
 
-![test](https://github.com/user-attachments/assets/f7f89bc8-9212-45a1-9d42-07d69b871923)
-
+![2025-11-03-20 44 05](https://github.com/user-attachments/assets/426cf66b-e009-4475-86ab-c61564823d9c)
 
 ## Features
 
