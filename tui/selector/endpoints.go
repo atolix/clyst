@@ -75,9 +75,9 @@ func (m endpointModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m endpointModel) View() string {
-	listWidth := m.width / 3
-	detailWidth := m.width / 3
-	height := m.height / 3
+	listWidth := m.width / 2
+	detailWidth := m.width / 2 - 5
+	height := m.height / 2
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, listView(m, listWidth, height), detailBox(m, detailWidth, height))
 }
