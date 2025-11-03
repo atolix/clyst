@@ -23,7 +23,7 @@ type specModel struct {
 }
 
 func newSpecModel(title string, items []list.Item) specModel {
-	const defaultWidth = 60
+	const defaultWidth = 120
 	l := list.New(items, NewStyleDelegate(), defaultWidth, 20)
 	l.Title = title
 	l.SetShowStatusBar(false)

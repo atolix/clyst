@@ -53,7 +53,7 @@ func Render(result request.ResultInfo) string {
 	headers := renderHeaders(result, s)
 	respBox := renderResponseBox(result, headers, bodyStr, lexer, s)
 
-	return lipgloss.JoinVertical(lipgloss.Left, reqBox, "\n", respBox)
+	return lipgloss.JoinHorizontal(lipgloss.Left, reqBox, "\n", respBox)
 }
 
 func renderRequestBox(result request.ResultInfo, s styles) string {
