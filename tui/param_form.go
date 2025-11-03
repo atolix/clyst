@@ -188,7 +188,7 @@ func (m paramFormModel) Init() tea.Cmd {
 func (m paramFormModel) View() string {
 	title := lipgloss.NewStyle().Bold(true).Foreground(theme.Primary).Render("Parameters")
 	section := lipgloss.NewStyle().Bold(true)
-	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2)
+	box := lipgloss.NewStyle().Width(m.width - 5).Border(lipgloss.RoundedBorder()).BorderForeground(theme.Border).Padding(1, 2)
 	outer := lipgloss.NewStyle().MarginBottom(2)
 	onStyle := lipgloss.NewStyle().
 		Bold(true).
