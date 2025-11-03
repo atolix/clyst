@@ -54,7 +54,7 @@ func (m endpointModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-
+		m.list.SetSize(m.width, m.height - 5)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
@@ -76,8 +76,14 @@ func (m endpointModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m endpointModel) View() string {
 	listWidth := m.width / 2
-	detailWidth := m.width / 2 - 5
-	height := m.height / 2
+	if listWidth <= 0 {
+		listWidth = m.width
+	}
+	detailWidth := m.width - listWidth - 5
+	if detailWidth < 0 {
+		detailWidth = 0
+	}
+	height := m.height - 5
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, listView(m, listWidth, height), detailBox(m, detailWidth, height))
 }
